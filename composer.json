@@ -1,0 +1,53 @@
+{
+  "name": "click/elements",
+  "description": ":description",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Click",
+      "email": "developers@clickdigitalsolutions.co.uk",
+      "homepage": "https://github.com/clickops"
+    }
+  ],
+  "homepage": "https://github.com/clickops/elements",
+  "keywords": [
+    "Laravel",
+    "Elements"
+  ],
+  "require": {
+    "illuminate/support": "~5",
+    "ext-json": "*",
+    "moontoast/math": "^1.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~7.0",
+    "mockery/mockery": "^1.1",
+    "orchestra/testbench": "~3.0",
+    "sempro/phpunit-pretty-print": "^1.0"
+  },
+  "autoload": {
+    "files": [
+      "src/helpers.php"
+    ],
+    "psr-4": {
+      "Click\\Elements\\": "src/",
+      "Click\\Elements\\Database\\Seeds\\": "database/seeds/",
+      "Click\\Elements\\Database\\Factories\\": "database/factories/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Click\\Elements\\Tests\\": "tests"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Click\\Elements\\ElementsServiceProvider"
+      ]
+    }
+  },
+  "suggest": {
+    "click/elemental": "Laravel: Managed"
+  }
+}
