@@ -32,5 +32,4 @@ class ElementPropertiesNotValidException extends Exception
     {
         return $this->validator;
     }
-
 }

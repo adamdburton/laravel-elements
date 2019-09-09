@@ -2,15 +2,13 @@
 
 namespace Click\Elements\Elements;
 
-use Click\Elements\Entity;
 use Click\Elements\PropertyType;
+use Click\Elements\Schema;
 
-class Field extends Entity
+class Field extends Schema
 {
-    /**
-     * @return array
-     */
-    public function getAttributes()
+    /** @return array */
+    public function getProperties()
     {
         return [
             'group' => [

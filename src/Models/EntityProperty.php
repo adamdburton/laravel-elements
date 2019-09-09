@@ -23,7 +23,7 @@ class EntityProperty extends Pivot
     }
 
     // Attributes
-    
+
     public function getValueAttribute()
     {
         return elements()->elements()->castProperty($this->property->type, $this->attributes);

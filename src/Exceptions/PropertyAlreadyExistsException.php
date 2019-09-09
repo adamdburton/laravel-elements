@@ -10,5 +10,4 @@ class PropertyAlreadyExistsException extends Exception
     {
         parent::__construct(sprintf('"%s" is already a property.', $property));
     }
-
 }

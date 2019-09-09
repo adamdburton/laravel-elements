@@ -10,5 +10,4 @@ class PropertyMissingException extends Exception
     {
         parent::__construct(sprintf('"%s" property is missing.', $property));
     }
-
 }

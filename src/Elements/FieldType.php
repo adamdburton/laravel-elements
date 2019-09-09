@@ -2,14 +2,12 @@
 
 namespace Click\Elements\Elements;
 
-use Click\Elements\Entity;
+use Click\Elements\Schema;
 
-class FieldType extends Entity
+class FieldType extends Schema
 {
-    /**
-     * @return array
-     */
-    public function getAttributes()
+    /** @return array */
+    public function getProperties()
     {
         return [];
     }

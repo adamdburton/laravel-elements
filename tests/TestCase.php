@@ -12,11 +12,11 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $this->withFactories(__DIR__.'/../database/factories');
+        $this->withFactories(__DIR__ . '/../database/factories');
 
         $this->artisan('migrate:fresh', [
             '--database' => 'testbench',
-            '--realpath' => realpath(__DIR__.'/../database/migrations'),
+            '--realpath' => realpath(__DIR__ . '/../database/migrations'),
         ]);
     }
 
@@ -30,9 +30,9 @@ abstract class TestCase extends BaseTestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver'   => 'sqlite',
-            'database' => realpath(__DIR__.'/testing.sqlite'),
-            'prefix'   => '',
+            'driver' => 'sqlite',
+            'database' => realpath(__DIR__ . '/testing.sqlite'),
+            'prefix' => '',
         ]);
     }
 

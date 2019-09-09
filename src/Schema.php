@@ -2,25 +2,37 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Concerns\HasEntityProperties;
+use Click\Elements\Concerns\HasAttributes;
 use Click\Elements\Contracts\EntityContract;
-use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 use Illuminate\Support\Str;
 
 abstract class Schema implements EntityContract
 {
-    use HasEntityProperties;
     use HasAttributes;
 
+    protected $entityLabel;
+
+    protected $entityType;
+
     /** @return string */
-    function getEntityLabel()
+    public function getEntityLabel()
     {
-        return $this->entityLabel ?? Str::pluralStudly($this->getEntityType());
+        return $this->entityLabel ?: ucwords(Str::pluralStudly($this->getEntityType()));
     }
 
     /** @return string */
-    function getEntityType()
+    public function getEntityType()
     {
-        return $this->entityType ?? Str::snake(class_basename($this));
+        return $this->entityType ?: Str::lower(Str::snake(class_basename($this)));
+    }
+
+    /**
+     * @return array
+     */
+    public function getEntityProperties()
+    {
+        return collect($this->getProperties())->map(function ($config, $key) {
+            return elements()->properties()->getPropertyForEntity($this, $key);
+        })->all();
     }
 }

@@ -6,22 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class Entity extends Model
 {
-    protected $fillable = ['type'];
+    protected $fillable = ['type_id'];
 
     // Relationships
+
+    public function entityType()
+    {
+        return $this->belongsTo(EntityType::class, 'type_id');
+    }
 
     public function properties()
     {
         return $this->belongsToMany(Property::class, 'entity_properties')
             ->using(EntityProperty::class)
-            ->withPivot('bool_value', 'int_value', 'float_value', 'string_value', 'text_value', 'json_value');
+            ->withPivot('bool_value', 'int_value', 'float_value', 'string_value', 'text_value', 'json_value')
+            ->withTimestamps();
     }
 
     // Scopes
 
     public function scopeType($query, $type)
     {
-        $query->where('type', $type);
+        $query->whereHas('entityType', function ($query) use ($type) {
+            $query->where('type', $type);
+        });
     }
 
     public function scopeWhereProperty($query, $property, $operator = '', $value = null)

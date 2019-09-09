@@ -10,5 +10,4 @@ class PropertyTypeInvalidException extends Exception
     {
         parent::__construct(sprintf('"%s" is not a valid property type.', $type));
     }
-
 }

@@ -10,5 +10,4 @@ class PropertyNotDefinedException extends Exception
     {
         parent::__construct(sprintf('"%s" is not a defined property.', $type));
     }
-
 }

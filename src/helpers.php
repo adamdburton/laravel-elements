@@ -1,7 +1,10 @@
 <?php
 
 use Click\Elements\Elements;
-use Click\Elements\Models\Entity;
+use Click\Elements\Exceptions\ElementNotDefinedException;
+use Click\Elements\Exceptions\PropertyMissingException;
+use Click\Elements\Exceptions\PropertyNotDefinedException;
+use Click\Elements\Schema;
 
 if (!function_exists('elements_path')) {
     /**
@@ -10,7 +13,7 @@ if (!function_exists('elements_path')) {
      */
     function elements_path($path = '')
     {
-        return rtrim(realpath(__DIR__ . '../../'), '/') . ($path ? '/' . ltrim($path) : '');
+        return rtrim(realpath(__DIR__ . '/..'), '/') . ($path ? '/' . ltrim($path) : '');
     }
 }
 
@@ -27,10 +30,14 @@ if (!function_exists('elements')) {
 if (!function_exists('element')) {
     /**
      * @param string $type
-     * @return Query
+     * @param array $attributes
+     * @return Schema
+     * @throws ElementNotDefinedException
+     * @throws PropertyMissingException
+     * @throws PropertyNotDefinedException
      */
-    function element($type)
+    function element($type, $attributes = [])
     {
-        return Entity::with('properties')->type($type);
+        return elements()->elements()->factory($type, $attributes);
     }
 }

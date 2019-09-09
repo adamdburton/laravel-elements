@@ -3,32 +3,28 @@
 namespace Click\Elements;
 
 use Click\Elements\Services\ElementService;
-use Click\Elements\Services\Entities\EntityService;
-use Click\Elements\Services\Entities\PropertyService;
+use Click\Elements\Services\PropertyService;
 
 class Elements
 {
-    /** @var EntityService */
-    private $entityService;
+    /** @var ElementService */
+    private $elementService;
 
     /** @var PropertyService */
     private $propertyService;
 
-    /** @var ElementService */
-    protected $elementService;
-
-    public function __construct(EntityService $entityService, PropertyService $propertyService)
+    public function __construct(ElementService $elementService, PropertyService $propertyService)
     {
-        $this->entityService = $entityService;
+        $this->elementService = $elementService;
         $this->propertyService = $propertyService;
     }
 
     /**
-     * @return EntityService
+     * @return ElementService
      */
-    public function entities()
+    public function elements()
     {
-        return $this->entityService;
+        return $this->elementService;
     }
 
     /**
@@ -38,12 +34,4 @@ class Elements
     {
         return $this->propertyService;
     }
-
-    /**
-     * @return ElementService
-     */
-//    public function elements()
-//    {
-//        return $this->elementService;
-//    }
 }

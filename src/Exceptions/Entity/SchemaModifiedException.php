@@ -10,5 +10,4 @@ class SchemaModifiedException extends Exception
     {
         parent::__construct(sprintf('The schema for "%s" has been modified. A migration has been generated at %s. Run php artisan elements:migrate to update to the new schema.', $type, $migrationPath));
     }
-
 }

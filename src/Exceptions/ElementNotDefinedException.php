@@ -10,5 +10,4 @@ class ElementNotDefinedException extends Exception
     {
         parent::__construct(sprintf('"%s" is not a defined element type.', $type));
     }
-
 }

@@ -4,22 +4,21 @@ namespace Click\Elements;
 
 use App\Listeners\UpdateElements;
 use Carbon\Laravel\ServiceProvider;
+use Click\Elements\Elements\Element;
 use Click\Elements\Elements\Field;
 use Click\Elements\Elements\FieldGroup;
 use Click\Elements\Elements\FieldType;
 use Click\Elements\Events\ModelSaved;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
-use Click\Elements\Schemas\Element;
+use Click\Elements\Services\ElementService;
+use Click\Elements\Services\PropertyService;
 use Illuminate\Support\Facades\Event;
 
 class ElementsServiceProvider extends ServiceProvider
 {
-    protected $entities = [
-        Element::class
-    ];
-
     protected $elements = [
+        Element::class,
         Field::class,
         FieldGroup::class,
         FieldType::class
@@ -39,7 +38,6 @@ class ElementsServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->bootElements();
-        $this->bootEntities();
 
         $this->bootListeners();
         $this->bootObservers();
@@ -49,12 +47,11 @@ class ElementsServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * @return void
-     */
-    protected function bootForConsole()
+    protected function bootElements()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        foreach ($this->elements as $element) {
+            elements()->elements()->register($element);
+        }
     }
 
     /**
@@ -77,18 +74,12 @@ class ElementsServiceProvider extends ServiceProvider
         Entity::observe(EntityObserver::class);
     }
 
-    protected function bootEntities()
+    /**
+     * @return void
+     */
+    protected function bootForConsole()
     {
-        foreach ($this->entities as $entity) {
-//            elements()->entities()->define($entity);
-        }
-    }
-
-    protected function bootElements()
-    {
-        foreach ($this->elements as $element) {
-//            elements()->elements()->define($element);
-        }
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 
     /**
@@ -96,11 +87,16 @@ class ElementsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-//        $this->registerServices();
+        $this->registerServices();
     }
 
     protected function registerServices()
     {
-
+        $this->app->singleton(Elements::class, function ($app) {
+            return new Elements(
+                new ElementService(),
+                new PropertyService()
+            );
+        });
     }
 }
