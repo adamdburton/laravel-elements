@@ -8,7 +8,9 @@ class EntityProperty extends Pivot
 {
     public $incrementing = true;
 
-    protected $table = 'entity_properties';
+    protected $table = 'elements_entity_properties';
+
+    protected $casts = ['json_value' => 'array'];
 
     // Relationships
 
@@ -26,7 +28,7 @@ class EntityProperty extends Pivot
 
     public function getValueAttribute()
     {
-        return elements()->elements()->castProperty($this->property->type, $this->attributes);
+//        return elements()->elements()->castProperty($this->property->type, $this->attributes);
 
         // get
 

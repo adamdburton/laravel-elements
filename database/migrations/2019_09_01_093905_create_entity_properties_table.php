@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateEntityPropertiesTable extends Migration
 {
@@ -13,17 +13,18 @@ class CreateEntityPropertiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('entity_properties', function (Blueprint $table) {
+        Schema::create('elements_entity_properties', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('entity_id');
             $table->unsignedBigInteger('property_id');
 
             $table->boolean('boolean_value')->nullable();
-            $table->integer('integer_value')->nullable();
-            $table->double('double_value')->nullable();
-            $table->string('string_value')->nullable();
+            $table->integer('integer_value', false, false)->nullable();
+            $table->float('float_value', 8, 2)->nullable();
+            $table->string('string_value', 255)->nullable();
             $table->text('text_value')->nullable();
             $table->json('json_value')->nullable();
+            $table->timestamp('timestamp_value', 0)->nullable();
 
             $table->timestamps();
 
@@ -32,11 +33,10 @@ class CreateEntityPropertiesTable extends Migration
             $table->index(['entity_id', 'property_id', 'integer_value'], 'fk_integer_index');
             $table->index(['entity_id', 'property_id', 'float_value'], 'fk_float_index');
             $table->index(['entity_id', 'property_id', 'string_value'], 'fk_string_index');
+            $table->index(['entity_id', 'property_id', 'timestamp_value'], 'fk_timestamp_index');
 //            $table->index(['entity_id', 'property_id', 'text_value'], 'text_index');
 //            $table->index(['entity_id', 'property_id', 'json_value'], 'json_index');
         });
-
-//        $this->addFullTextIndex('entity_properties', ['text_value', 'string_value']);
     }
 
     /**
@@ -46,15 +46,6 @@ class CreateEntityPropertiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('entity_properties');
-    }
-
-    protected function addFullTextIndex($table, $columns, $index = null)
-    {
-        if(!$index) {
-            $index = implode('_', $columns) . '_fulltext_index';
-        }
-
-        DB::statement(sprintf('ALTER TABLE %s ADD FULLTEXT %s (%s)', $table, $index, implode(', ', $columns)));
+        Schema::dropIfExists('elements_entity_properties');
     }
 }

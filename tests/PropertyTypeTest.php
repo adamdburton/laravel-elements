@@ -2,8 +2,6 @@
 
 namespace Click\Elements\Tests\Services;
 
-use Click\Elements\Elements;
-use Click\Elements\Elements\Element;
 use Click\Elements\PropertyType;
 use Click\Elements\Tests\TestCase;
 
@@ -17,6 +15,6 @@ class PropertyTypeTest extends TestCase
 
     public function test_get_types()
     {
-        $this->assertEquals(8, count(PropertyType::getTypes()));
+        $this->assertEquals(9, count(PropertyType::getTypes()));
     }
 }

@@ -5,6 +5,9 @@ namespace Click\Elements\Events;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Triggered when a model is saved.
+ */
 class ModelSaved
 {
     use SerializesModels;

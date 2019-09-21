@@ -2,28 +2,22 @@
 
 namespace Click\Elements;
 
-use App\Listeners\UpdateElements;
-use Carbon\Laravel\ServiceProvider;
-use Click\Elements\Elements\Element;
-use Click\Elements\Elements\Field;
-use Click\Elements\Elements\FieldGroup;
-use Click\Elements\Elements\FieldType;
+use Click\Elements\Commands\InstallElements;
+use Click\Elements\Commands\MakeElement;
+use Click\Elements\Elements\ElementType;
+use Click\Elements\Elements\Module;
 use Click\Elements\Events\ModelSaved;
+use Click\Elements\Listeners\UpdateElements;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
-use Click\Elements\Services\ElementService;
-use Click\Elements\Services\PropertyService;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\ServiceProvider;
 
+/**
+ * Laravel Service Provider
+ */
 class ElementsServiceProvider extends ServiceProvider
 {
-    protected $elements = [
-        Element::class,
-        Field::class,
-        FieldGroup::class,
-        FieldType::class
-    ];
-
     protected $listeners = [
         ModelSaved::class => [
             UpdateElements::class
@@ -37,20 +31,14 @@ class ElementsServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->bootElements();
-
         $this->bootListeners();
         $this->bootObservers();
 
+        app(Elements::class)->register(ElementType::class);
+        app(Elements::class)->register(Module::class);
+
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
-        }
-    }
-
-    protected function bootElements()
-    {
-        foreach ($this->elements as $element) {
-            elements()->elements()->register($element);
         }
     }
 
@@ -80,10 +68,16 @@ class ElementsServiceProvider extends ServiceProvider
     protected function bootForConsole()
     {
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        $this->commands([
+            InstallElements::class,
+            MakeElement::class
+        ]);
     }
 
     /**
      * @return void
+     * @throws \Exception
      */
     public function register()
     {
@@ -93,10 +87,7 @@ class ElementsServiceProvider extends ServiceProvider
     protected function registerServices()
     {
         $this->app->singleton(Elements::class, function ($app) {
-            return new Elements(
-                new ElementService(),
-                new PropertyService()
-            );
+            return new Elements;
         });
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Click\Elements;
 
+/**
+ * Defines the available property types for elements.
+ */
 class PropertyType
 {
     public const BOOLEAN = 'boolean';
@@ -12,6 +15,7 @@ class PropertyType
     public const ARRAY = 'array';
     public const JSON = 'json';
     public const RELATION = 'relation';
+    public const TIMESTAMP = 'timestamp';
 
     /**
      * @param $type
@@ -33,9 +37,10 @@ class PropertyType
             self::DOUBLE,
             self::STRING,
             self::TEXT,
-            self::ARRAY,
             self::JSON,
-            self::RELATION
+            self::ARRAY,
+            self::RELATION,
+            self::TIMESTAMP
         ];
     }
 }

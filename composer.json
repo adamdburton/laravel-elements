@@ -54,6 +54,11 @@
   "scripts": {
     "format": [
       "vendor/bin/php-cs-fixer fix"
+    ],
+    "docs": [
+      "vendor/bin/phpunit --coverage-xml build/coverage",
+      "phploc --count-tests --log-xml=build/phploc.xml src",
+      "phpdox"
     ]
   }
 }

@@ -13,10 +13,9 @@ class CreateEntitiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('entities', function (Blueprint $table) {
+        Schema::create('elements_entities', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('type_id')->index();
-            $table->uuid('uuid')->unique();
+            $table->string('uuid')->unique();
             $table->nullableMorphs('model');
             $table->timestamps();
         });
@@ -29,6 +28,6 @@ class CreateEntitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('entities');
+        Schema::dropIfExists('elements_entities');
     }
 }

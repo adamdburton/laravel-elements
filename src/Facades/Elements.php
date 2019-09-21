@@ -4,6 +4,9 @@ namespace Click\Elements\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
+/**
+ * Laravel Facade
+ */
 class Elements extends Facade
 {
     /**
@@ -13,6 +16,6 @@ class Elements extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'elements';
+        return \Click\Elements\Elements::class;
     }
 }

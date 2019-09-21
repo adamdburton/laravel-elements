@@ -2,7 +2,10 @@
 
 namespace Click\Elements\Concerns;
 
-trait HasAttributes
+use Click\Elements\Models\Property;
+use Click\Elements\PropertyType;
+
+trait HasTypedAttributes
 {
     protected $attributes = [];
 
@@ -23,6 +26,10 @@ trait HasAttributes
 
     public function setAttribute($key, $value)
     {
+        if ($property = $this->getElementType()->getProperty($key)) {
+            $this->checkAttributeType($property, $value);
+        }
+
         $this->attributes[$key] = $value;
 
         return $this;
@@ -35,8 +42,20 @@ trait HasAttributes
 
     public function setAttributes($attributes)
     {
-        $this->attributes = $attributes;
+        foreach ($attributes as $key => $value) {
+            $this->setAttribute($key, $value);
+        }
 
         return $this;
+    }
+
+    /**
+     * @param Property $property
+     * @param $value
+     * @return bool
+     */
+    protected function checkAttributeType(Property $property, $value)
+    {
+//        return PropertyType::validateValue($property, $value);
     }
 }

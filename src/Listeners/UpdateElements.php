@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners;
+namespace Click\Elements\Listeners;
 
 use Click\Elements\Events\ModelSaved;
 use Click\Elements\Services\ElementService;

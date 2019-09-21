@@ -2,37 +2,63 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Concerns\HasAttributes;
-use Click\Elements\Contracts\EntityContract;
-use Illuminate\Support\Str;
+use Click\Elements\Elements\Module;
 
-abstract class Schema implements EntityContract
+/**
+ * A blueprint-like interface for defining Element properties.
+ * @see Module for an example
+ */
+class Schema
 {
-    use HasAttributes;
+    protected $definition = [];
 
-    protected $entityLabel;
-
-    protected $entityType;
-
-    /** @return string */
-    public function getEntityLabel()
+    public function getDefinition()
     {
-        return $this->entityLabel ?: ucwords(Str::pluralStudly($this->getEntityType()));
+        return $this->definition;
     }
 
-    /** @return string */
-    public function getEntityType()
+    public function boolean($key)
     {
-        return $this->entityType ?: Str::lower(Str::snake(class_basename($this)));
+        $this->definition[$key] = PropertyType::BOOLEAN;
     }
 
-    /**
-     * @return array
-     */
-    public function getEntityProperties()
+    public function integer($key)
     {
-        return collect($this->getProperties())->map(function ($config, $key) {
-            return elements()->properties()->getPropertyForEntity($this, $key);
-        })->all();
+        $this->definition[$key] = PropertyType::INTEGER;
+    }
+
+    public function double($key)
+    {
+        $this->definition[$key] = PropertyType::DOUBLE;
+    }
+
+    public function string($key)
+    {
+        $this->definition[$key] = PropertyType::STRING;
+    }
+
+    public function text($key)
+    {
+        $this->definition[$key] = PropertyType::TEXT;
+    }
+
+    public function array($key)
+    {
+        $this->definition[$key] = PropertyType::ARRAY;
+    }
+
+    public function json($key)
+    {
+        $this->definition[$key] = PropertyType::JSON;
+    }
+
+    public function relation($key)
+    {
+        $this->definition[$key] = PropertyType::RELATION;
+    }
+
+    public function timestamp($key)
+    {
+        $this->definition[$key] = PropertyType::TIMESTAMP;
     }
 }

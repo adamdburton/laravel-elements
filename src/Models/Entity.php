@@ -6,33 +6,33 @@ use Illuminate\Database\Eloquent\Model;
 
 class Entity extends Model
 {
-    protected $fillable = ['type_id'];
+    protected $table = 'elements_entities';
 
     // Relationships
 
-    public function entityType()
+    public function parents()
     {
-        return $this->belongsTo(EntityType::class, 'type_id');
+        return $this->belongsToMany(Entity::class, 'element_entity_relations', 'child_entity_id', 'parent_entity_id')
+            ->withPivot('property_id');
+    }
+
+    public function children()
+    {
+        return $this->belongsToMany(Entity::class, 'element_entity_relations', 'parent_entity_id', 'child_entity_id')
+            ->withPivot('property_id');
     }
 
     public function properties()
     {
-        return $this->belongsToMany(Property::class, 'entity_properties')
+        return $this->belongsToMany(Property::class, 'elements_entity_properties')
             ->using(EntityProperty::class)
-            ->withPivot('bool_value', 'int_value', 'float_value', 'string_value', 'text_value', 'json_value')
+            ->withPivot('boolean_value', 'integer_value', 'double_value', 'string_value', 'text_value', 'json_value')
             ->withTimestamps();
     }
 
     // Scopes
 
-    public function scopeType($query, $type)
-    {
-        $query->whereHas('entityType', function ($query) use ($type) {
-            $query->where('type', $type);
-        });
-    }
-
-    public function scopeWhereProperty($query, $property, $operator = '', $value = null)
+    public function scopeWhereHasProperty($query, $property, $operator = '', $value = null)
     {
         $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
 //            $prop = elements()->properties()->getProperty($property);
@@ -43,7 +43,7 @@ class Entity extends Model
         });
     }
 
-    public function scopeWherePropertyIn($query, $property, $values)
+    public function scopeWhereHasPropertyIn($query, $property, $values)
     {
         $query->whereHas('properties', function ($query) use ($property, $values) {
 //            $prop = elements()->properties()->getProperty($property);

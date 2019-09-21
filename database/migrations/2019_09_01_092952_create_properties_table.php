@@ -14,9 +14,9 @@ class CreatePropertiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('properties', function (Blueprint $table) {
+        Schema::create('elements_properties', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('property', 64)->index();
+            $table->string('property', 64)->unique();
             $table->enum('type', PropertyType::getTypes())->index();
         });
     }
@@ -28,6 +28,6 @@ class CreatePropertiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('properties');
+        Schema::dropIfExists('elements_properties');
     }
 }
