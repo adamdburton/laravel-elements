@@ -32,14 +32,12 @@ class Entity extends Model
 
     // Scopes
 
-    public function scopeWhereHasProperty($query, $property, $operator = '', $value = null)
+    public function scopeWhereHasProperty($query, Property $property, $operator = '', $value = null)
     {
         $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
-//            $prop = elements()->properties()->getProperty($property);
-//
-//            $query
-//                ->where('property_id', $prop->id)
-//                ->where($prop->type . '_value', $value ? $operator : '=', $value ?? $operator);
+            $query
+                ->where('property_id', $property->id)
+                ->where($prop->type . '_value', $value ? $operator : '=', $value ?? $operator);
         });
     }
 

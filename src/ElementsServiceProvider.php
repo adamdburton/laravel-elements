@@ -77,7 +77,6 @@ class ElementsServiceProvider extends ServiceProvider
 
     /**
      * @return void
-     * @throws \Exception
      */
     public function register()
     {

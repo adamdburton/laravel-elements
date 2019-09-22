@@ -28,7 +28,7 @@ class Builder
 
     public function where($property, $operator = '', $value = null)
     {
-        $property = $this->element->getElementType()->prefixProperty($property);
+        $property = $this->element->getElementType()->getProperty($property);
 
         $this->query->whereHasProperty($property, $operator, $value);
 
@@ -37,6 +37,7 @@ class Builder
 
     public function exists()
     {
+        dd($this->query->toSql());
         return $this->query->exists();
     }
 
@@ -45,7 +46,7 @@ class Builder
      * @return mixed
      * @throws \Exception
      */
-    public function create($attributes = [])
+    public function create(array $attributes)
     {
 //        $this->validate($attributes);
 
@@ -54,11 +55,31 @@ class Builder
             $attributes
         );
 
+        /** @var Entity $entity */
         $entity = Entity::create();
 
         $entity->properties()->sync($relations);
 
-        $element = $this->element->getElementType()->factory($attributes);
+        $element = $this->element->getElementType()->factory(array_merge($attributes, $entity->toArray()));
+
+        return $element;
+    }
+
+    public function update(array $attributes)
+    {
+        $attributes = array_merge($this->element->getAttributes(), $attributes);
+
+        $relations = $this->buildRelations(
+            $this->element->getProperties(),
+            $attributes
+        );
+
+        /** @var Entity $entity */
+        $entity = Entity::find($this->element->id);
+
+        $entity->properties()->sync($relations);
+
+        $element = $this->element->getElementType()->factory(array_merge($attributes, $entity->toArray()));
 
         return $element;
     }

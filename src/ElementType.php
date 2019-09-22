@@ -64,6 +64,9 @@ class ElementType
         return $this->definition;
     }
 
+    /**
+     * @return Elements\ElementType
+     */
     public function install()
     {
         collect($this->getDefinition())->map(function ($propertyType, $property) {
@@ -75,7 +78,7 @@ class ElementType
             );
         })->all();
 
-        \Click\Elements\Elements\ElementType::create(['type' => $this->getType()]);
+        return Elements\ElementType::create(['type' => $this->getType()]);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Click\Elements\Commands;
 
 use Click\Elements\Elements;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * php artisan elements:install
