@@ -2,7 +2,7 @@
 
 ![Elements](https://i.imgur.com/byzJHiI.png)
 
-// TODO: Write a description!
+`// TODO: Write a description!`
 
 ## Installation  
   
@@ -179,7 +179,7 @@ class MyElement extends Element
 }  
 ```
   
-This behaviour is dependent on [eloquent events](https://laravel.com/docs/5.8/eloquent#events) being triggered on models in your applications as well as on internal models to function property.  
+This behaviour is dependent on [eloquent events](https://laravel.com/docs/5.8/eloquent#events) being triggered on both your own and the internal element models to function property.
   
 A call to  `YourModel::delete()` for example will not trigger any related elements to delete. See [deleting models](https://laravel.com/docs/5.7/eloquent#deleting-models) in the Laravel documentation for more info.
 
