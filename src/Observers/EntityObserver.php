@@ -9,8 +9,8 @@ class EntityObserver
 {
     public function creating(Entity $entity)
     {
-        if (!$entity->uuid) {
-            $entity->uuid = Str::orderedUuid();
-        }
+//        if (!$entity->uuid) {
+//            $entity->uuid = Str::orderedUuid();
+//        }
     }
 }

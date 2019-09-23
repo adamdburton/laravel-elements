@@ -7,6 +7,9 @@ use Click\Elements\ElementsServiceProvider;
 use Click\Elements\Tests\Elements\TestElement;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
+/**
+ * Class TestCase
+ */
 abstract class TestCase extends BaseTestCase
 {
     /** @var Elements */

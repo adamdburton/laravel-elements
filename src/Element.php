@@ -2,9 +2,8 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Concerns\HasTypedAttributes;
+use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
-use Click\Elements\Elements\Module;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
@@ -13,8 +12,11 @@ use Illuminate\Support\Traits\ForwardsCalls;
  */
 abstract class Element implements ElementContract
 {
-    use HasTypedAttributes;
+    use HasTypedProperties;
     use ForwardsCalls;
+
+    /** @var int */
+    public $primaryKey;
 
     /** @var string */
     protected $typeName;
@@ -22,6 +24,9 @@ abstract class Element implements ElementContract
     /** @var Builder */
     protected $query;
 
+    /**
+     * @param null $attributes
+     */
     public function __construct($attributes = null)
     {
         if ($attributes) {
@@ -29,6 +34,11 @@ abstract class Element implements ElementContract
         }
     }
 
+    /**
+     * @param $method
+     * @param $parameters
+     * @return mixed
+     */
     public function __call($method, $parameters)
     {
         if (!$this->query) {
@@ -38,9 +48,33 @@ abstract class Element implements ElementContract
         return $this->forwardCallTo($this->query, $method, $parameters);
     }
 
+    /**
+     * @param $method
+     * @param $parameters
+     * @return mixed
+     */
     public static function __callStatic($method, $parameters)
     {
         return (new static)->$method(...$parameters);
+    }
+
+    /**
+     * @param int $primaryKey
+     * @return Element
+     */
+    public function setPrimaryKey(int $primaryKey)
+    {
+        $this->primaryKey = $primaryKey;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
     }
 
     /**
@@ -52,20 +86,24 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return ElementType
-     * @throws \Exception
+     * @return ElementDefinition
+     * @throws Exceptions\ElementTypeMissingException
      */
-    public function getElementType()
+    public function getElementDefinition()
     {
-        return app(Elements::class)->getElementType($this->getElementTypeName());
+        /** @var Elements $elements */
+        $elements = app(Elements::class);
+
+        return $elements->getElementDefinition($this->getElementTypeName());
     }
 
     /**
      * @return mixed
-     * @throws \Exception
+     * @throws Exceptions\PropertyMissingException
+     * @throws Exceptions\ElementTypeMissingException
      */
     public function getProperties()
     {
-        return $this->getElementType()->getProperties();
+        return $this->getElementDefinition()->getProperties();
     }
 }

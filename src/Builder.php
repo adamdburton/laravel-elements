@@ -4,6 +4,9 @@ namespace Click\Elements;
 
 use Click\Elements\Models\Entity;
 
+/**
+ * Class Builder
+ */
 class Builder
 {
     /** @var Element */
@@ -12,6 +15,9 @@ class Builder
     /** @var \Illuminate\Database\Eloquent\Builder */
     protected $query;
 
+    /**
+     * @param Element $element
+     */
     public function __construct(Element $element)
     {
         $this->element = $element;
@@ -19,6 +25,11 @@ class Builder
         $this->query = Entity::query();
     }
 
+    /**
+     * @param $type
+     * @return $this
+     * @see Entity::scopeWhereHasProperty()
+     */
     public function type($type)
     {
         $this->query->whereHasProperty('elementType.type', $type);
@@ -26,6 +37,13 @@ class Builder
         return $this;
     }
 
+    /**
+     * @param $property
+     * @param string $operator
+     * @param null $value
+     * @return $this
+     * @see Entity::scopeWhereHasProperty()
+     */
     public function where($property, $operator = '', $value = null)
     {
         $property = $this->element->getElementType()->getProperty($property);
@@ -35,9 +53,11 @@ class Builder
         return $this;
     }
 
+    /**
+     * @return bool
+     */
     public function exists()
     {
-        dd($this->query->toSql());
         return $this->query->exists();
     }
 
@@ -48,7 +68,7 @@ class Builder
      */
     public function create(array $attributes)
     {
-//        $this->validate($attributes);
+        $this->validate($attributes);
 
         $relations = $this->buildRelations(
             $this->element->getProperties(),
@@ -60,13 +80,21 @@ class Builder
 
         $entity->properties()->sync($relations);
 
-        $element = $this->element->getElementType()->factory(array_merge($attributes, $entity->toArray()));
+        $element = $this->element->getElementDefinition()->factory($attributes, $entity->id);
 
         return $element;
     }
 
+    /**
+     * @param array $attributes
+     * @return Element
+     * @throws Exceptions\ElementTypeMissingException
+     * @throws Exceptions\PropertyMissingException
+     */
     public function update(array $attributes)
     {
+        $this->validate($attributes);
+
         $attributes = array_merge($this->element->getAttributes(), $attributes);
 
         $relations = $this->buildRelations(
@@ -75,11 +103,11 @@ class Builder
         );
 
         /** @var Entity $entity */
-        $entity = Entity::find($this->element->id);
+        $entity = Entity::find($this->element->getPrimaryKey());
 
         $entity->properties()->sync($relations);
 
-        $element = $this->element->getElementType()->factory(array_merge($attributes, $entity->toArray()));
+        $element = $this->element->getElementDefinition()->factory($attributes);
 
         return $element;
     }

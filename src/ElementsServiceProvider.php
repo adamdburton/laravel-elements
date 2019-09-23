@@ -6,6 +6,7 @@ use Click\Elements\Commands\InstallElements;
 use Click\Elements\Commands\MakeElement;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Elements\Module;
+use Click\Elements\Elements\TypedProperty;
 use Click\Elements\Events\ModelSaved;
 use Click\Elements\Listeners\UpdateElements;
 use Click\Elements\Models\Entity;
@@ -33,9 +34,6 @@ class ElementsServiceProvider extends ServiceProvider
     {
         $this->bootListeners();
         $this->bootObservers();
-
-        app(Elements::class)->register(ElementType::class);
-        app(Elements::class)->register(Module::class);
 
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();

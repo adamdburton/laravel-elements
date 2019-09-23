@@ -43,4 +43,22 @@ class PropertyType
             self::TIMESTAMP
         ];
     }
+
+    /**
+     * @param $type
+     * @param $value
+     * @return bool
+     */
+    public static function validateValue($type, $value)
+    {
+        switch ($type) {
+            case PropertyType::ARRAY:
+                $type = PropertyType::JSON;
+                break;
+            case PropertyType::RELATION:
+                $type = PropertyType::INTEGER;
+        }
+
+        return gettype($value) === $type;
+    }
 }

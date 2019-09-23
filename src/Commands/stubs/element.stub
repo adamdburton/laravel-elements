@@ -15,7 +15,7 @@ class DummyClass extends Element
      */
     public function getDefinition(Schema $schema)
     {
-        //$schema->string('introduction');
+        //$schema->string('title');
         //$schema->boolean('inStock');
         //$schema->integer('quantity');
         //$schema->double('price');

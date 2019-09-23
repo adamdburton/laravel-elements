@@ -1,0 +1,70 @@
+<?php
+
+namespace DummyNamespace;
+
+use DummyModelClassNamespace;
+use Click\Elements\Element;
+use Click\Elements\Concerns\TwoWayBinding;
+use Click\Elements\Schema;
+
+class DummyClass extends Element
+{
+    use TwoWayBinding;
+
+    protected $syncToModel = true;
+    protected $syncFromModel = true;
+
+    /**
+     * Define the schema for the DummyClass element.
+     *
+     * @param Schema $schema
+     * @return void
+     */
+    public function getDefinition(Schema $schema)
+    {
+        //$schema->string('title');
+        //$schema->boolean('inStock');
+        //$schema->integer('quantity');
+        //$schema->double('price');
+        //$schema->text('description');
+        //$schema->array('tags');
+        //$schema->json('settings');
+        //$schema->relation('author');
+        //$schema->timestamp('shippedAt');
+    }
+
+    /**
+     * Get the model class for use with two-way binding.
+     *
+     * @return string
+     */
+    public function getModel()
+    {
+        return DummyModelClass::class;
+    }
+
+    /**
+     * Map DummyModelClass model attributes from DummyClass element properties.
+     *
+     * @return array
+     */
+    public static function mapForModel(DummyClass $element)
+    {
+        return [
+            // 'model_attribute' => $element->elementProperty
+        ];
+    }
+
+    /**
+     * Map DummyClass element properties from DummyModelClass model attributes.
+     * Cast those types!
+     *
+     * @return array
+     */
+    public static function mapForElement(DummyModelClass $model)
+    {
+        return [
+            // 'elementProperty' => $model->model_attribute
+        ];
+    }
+}

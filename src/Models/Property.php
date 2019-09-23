@@ -3,7 +3,7 @@
 namespace Click\Elements\Models;
 
 use Click\Elements\Element;
-use Click\Elements\ElementType;
+use Click\Elements\ElementDefinition;
 use Click\Elements\PropertyType;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,7 +13,7 @@ class Property extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['property', 'type'];
+    protected $fillable = ['key', 'type'];
 
     // Relationships
 
@@ -27,9 +27,9 @@ class Property extends Model
 
     // Scopes
 
-    public function scopeProperty($query, $property)
+    public function scopeKey($query, $property)
     {
-        $query->where('property', $property);
+        $query->where('key', $property);
     }
 
     public function scopeType($query, $type)

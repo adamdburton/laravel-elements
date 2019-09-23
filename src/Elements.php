@@ -2,38 +2,54 @@
 
 namespace Click\Elements;
 
+use Click\Elements\Elements\ElementType;
+use Click\Elements\Elements\TypedProperty;
 use Click\Elements\Exceptions\ElementClassInvalidException;
-use Click\Elements\Exceptions\TablesMissingException;
-use Click\Elements\Exceptions\ElementTypeNameInvalidException;
 use Click\Elements\Exceptions\ElementTypeMissingException;
-use Click\Elements\Exceptions\PropertyTypeInvalidException;
+use Click\Elements\Exceptions\ElementTypeNameInvalidException;
+use Click\Elements\Exceptions\TablesMissingException;
+use Click\Elements\Models\Property;
 
 /**
  * Registers, instantiates and persists Elements.
  */
 class Elements
 {
-    /** @var array */
-    protected $elementTypes = [];
+    /** @var ElementDefinition[] */
+    protected $definitions = [];
 
     /**
      * @param string $class
-     * @return ElementType
+     * @return ElementDefinition
+     * @throws ElementClassInvalidException
      * @throws ElementTypeNameInvalidException
      */
     public function register(string $class)
     {
-        $this->validateClass($class);
+        $definition = $this->createDefinition($class);
 
-        $elementType = new ElementType($class);
+        $this->definitions[$definition->getType()] = $definition;
 
-        $this->validateTypeName($type = $elementType->getType());
-
-        $this->elementTypes[$type] = $elementType;
-
-        return $elementType;
+        return $definition;
     }
 
+    /**
+     * @param string $class
+     * @return ElementDefinition
+     * @throws ElementClassInvalidException
+     * @throws ElementTypeNameInvalidException
+     */
+    protected function createDefinition(string $class)
+    {
+        $this->validateClass($class);
+
+        $definition = new ElementDefinition($class);
+        $type = $definition->getType();
+
+        $this->validateTypeName($type);
+
+        return $definition;
+    }
 
     /**
      * @param $type
@@ -52,32 +68,28 @@ class Elements
      */
     protected function validateType($type)
     {
-        if (!isset($this->elementTypes[$type])) {
+        if (!isset($this->definitions[$type])) {
             throw new ElementTypeMissingException($type);
         }
     }
 
     /**
-     * @throws Exception
+     * @throws ElementClassInvalidException
+     * @throws ElementTypeNameInvalidException
+     * @throws TablesMissingException
      */
     public function install()
     {
         $this->checkTablesExist();
 
-        foreach ($this->elementTypes as $type => $elementType) {
-            $elementType->install();
-        }
-    }
+//        Property::create(['key' => 'elementType.name', 'type' => 'string']);
 
-    /**
-     * @param $properties
-     */
-    protected function validateDefinition($properties)
-    {
-        collect($properties)->each(function ($property, $key) {
-            $this->validateTypeName($key);
-            $this->validatePropertyType($property);
-        });
+        $this->register(ElementType::class)->install();
+        $this->register(TypedProperty::class)->install();
+
+        foreach ($this->getDefinitions() as $type => $definition) {
+            $definition->install();
+        }
     }
 
     /**
@@ -86,8 +98,6 @@ class Elements
      */
     protected function validateClass(string $class)
     {
-        // TODO: Check EntityContract is implemented
-
         if (!is_subclass_of($class, Element::class)) {
             throw new ElementClassInvalidException($class);
         }
@@ -96,41 +106,30 @@ class Elements
     /**
      * @param $type
      * @param array $attributes
-     * @return mixed
+     * @return Element
      * @throws ElementTypeMissingException
      */
     public function factory($type, $attributes = [])
     {
         $this->validateType($type);
 
-        $elementType = $this->getElementType($type);
+        $elementDefinition = $this->getElementDefinition($type);
 
-        return $elementType->factory($attributes);
+        return $elementDefinition->factory($attributes);
     }
 
     /**
      * @param $type
-     * @return ElementType
+     * @return ElementDefinition
      * @throws ElementTypeMissingException
      */
-    public function getElementType(string $type)
+    public function getElementDefinition(string $type)
     {
-        if (!isset($this->elementTypes[$type])) {
+        if (!isset($this->definitions[$type])) {
             throw new ElementTypeMissingException($type);
         }
 
-        return $this->elementTypes[$type];
-    }
-
-    /**
-     * @param $type
-     * @throws PropertyTypeInvalidException
-     */
-    protected function validatePropertyType($type)
-    {
-        if (!PropertyType::isValidType($type)) {
-            throw new PropertyTypeInvalidException($type);
-        }
+        return $this->definitions[$type];
     }
 
     /**
@@ -143,5 +142,18 @@ class Elements
         if (!$hasRun) {
             throw new TablesMissingException;
         }
+    }
+
+    /**
+     * @return ElementDefinition[]
+     */
+    protected function getDefinitions()
+    {
+        return array_filter($this->definitions, function ($definition) {
+            return !in_array($definition->getClass(), [
+                ElementType::class,
+                TypedProperty::class
+            ]);
+        });
     }
 }

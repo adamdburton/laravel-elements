@@ -10,6 +10,9 @@ use Click\Elements\Schema;
  */
 class ElementType extends Element
 {
+    /**
+     * @param Schema $schema
+     */
     public function getDefinition(Schema $schema)
     {
         $schema->string('name');
