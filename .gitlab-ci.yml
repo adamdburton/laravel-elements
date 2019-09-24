@@ -1,0 +1,43 @@
+stages:
+  - build
+  - test
+
+# Cache libraries in between jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - vendor/
+
+composer:
+  stage: build
+  image: edbizarro/gitlab-ci-pipeline-php:7.3
+  script:
+    - php -v
+    - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts --no-plugins --optimize-autoloader
+
+phpunit:
+  stage: test
+  image: edbizarro/gitlab-ci-pipeline-php:7.3
+  dependencies:
+    - composer
+  script:
+    - php -v
+    - ./vendor/bin/phpunit --version
+    - ./vendor/bin/phpunit -v --coverage-text --colors=never --stderr
+    - php coverage-checker.php clover.xml 40
+
+phpcs:
+  stage: test
+  image: edbizarro/gitlab-ci-pipeline-php:7.3
+  script:
+    - ./vendor/bin/phpcs --standard=PSR1,PSR2,PSR12 --extensions=php -p app
+  dependencies:
+    - composer
+
+larastan:
+  stage: test
+  image: edbizarro/gitlab-ci-pipeline-php:7.3
+  script:
+    - php artisan code:analyse --level=max --paths="app,tests"
+  dependencies:
+    - composer
