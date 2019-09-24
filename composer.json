@@ -59,7 +59,8 @@
     "docs": [
       "vendor/bin/phpunit --coverage-xml build/coverage",
       "phploc --count-tests --log-xml=build/phploc.xml src",
-      "phpdox"
+      "phpdox",
+      "open docs/html/index.html"
     ]
   }
 }
