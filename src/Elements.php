@@ -140,7 +140,7 @@ class Elements
         $hasRun = \DB::table('migrations')->where('migration', '2019_09_01_082218_create_entities_table')->exists();
 
         if (!$hasRun) {
-            throw new TablesMissingException;
+            throw new TablesMissingException();
         }
     }
 

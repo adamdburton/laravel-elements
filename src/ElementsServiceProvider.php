@@ -84,7 +84,7 @@ class ElementsServiceProvider extends ServiceProvider
     protected function registerServices()
     {
         $this->app->singleton(Elements::class, function ($app) {
-            return new Elements;
+            return new Elements();
         });
     }
 }

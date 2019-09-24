@@ -10,4 +10,3 @@ if (!function_exists('elements_path')) {
         return rtrim(realpath(__DIR__ . '/..'), '/') . ($path ? '/' . ltrim($path) : '');
     }
 }
-
