@@ -87,8 +87,7 @@ $ php artisan elements:install
   
 **You need to do this whenever any changes are made to element schemas.**
   
-You can bypass the need to run the command to commit changes  
-to the database by adding this to your `.env` file. This is useful for local development.
+You can bypass the need to run the command by adding this to your `.env` file. This is useful for local development.
   
 ```ini  
 ELEMENTS_AUTO_INSTALL=true  
@@ -123,7 +122,7 @@ class Book extends Element
 Creating new elements is much the same as Eloquent models, but assigning relationships is a little different.
 
 ```php
-<?
+<?php
 
 $author = Author::create([
     'name' => 'Neal Stephenson'
