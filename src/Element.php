@@ -4,11 +4,16 @@ namespace Click\Elements;
 
 use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
+use Click\Elements\Definitions\ElementDefinition;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
  * The base Element class. You should extend this.
+ * @method static create(array $attributes)
+ * @method static update(array $attributes)
  */
 abstract class Element implements ElementContract
 {
@@ -26,11 +31,12 @@ abstract class Element implements ElementContract
 
     /**
      * @param null $attributes
+     * @param bool $raw
      */
-    public function __construct($attributes = null)
+    public function __construct($attributes = null, $raw = false)
     {
         if ($attributes) {
-            $this->setAttributes($attributes);
+            $raw ? $this->setRawAttributes($attributes) : $this->setAttributes($attributes);
         }
     }
 
@@ -42,7 +48,7 @@ abstract class Element implements ElementContract
     public function __call($method, $parameters)
     {
         if (!$this->query) {
-            $this->query = new Builder($this);
+            $this->query = $this->newQuery();
         }
 
         return $this->forwardCallTo($this->query, $method, $parameters);
@@ -56,6 +62,14 @@ abstract class Element implements ElementContract
     public static function __callStatic($method, $parameters)
     {
         return (new static())->$method(...$parameters);
+    }
+
+    /**
+     * @return Builder
+     */
+    public function newQuery()
+    {
+        return new Builder($this);
     }
 
     /**
@@ -82,12 +96,12 @@ abstract class Element implements ElementContract
      */
     public function getElementTypeName()
     {
-        return $this->typeName ?: lcfirst(Str::studly(class_basename($this)));
+        return $this->typeName ?: get_class($this);
     }
 
     /**
      * @return ElementDefinition
-     * @throws Exceptions\ElementTypeMissingException
+     * @throws Exceptions\ElementTypeNotRegisteredException
      */
     public function getElementDefinition()
     {
@@ -100,10 +114,26 @@ abstract class Element implements ElementContract
     /**
      * @return mixed
      * @throws Exceptions\PropertyMissingException
-     * @throws Exceptions\ElementTypeMissingException
+     * @throws Exceptions\ElementTypeNotRegisteredException
      */
     public function getProperties()
     {
         return $this->getElementDefinition()->getProperties();
+    }
+
+    /**
+     * @return Validator
+     */
+    public function validate()
+    {
+        return $this->query->validateWith($this->attributes);
+    }
+
+    /**
+     * @return Collection
+     */
+    public function all()
+    {
+        return $this->newQuery()->get();
     }
 }

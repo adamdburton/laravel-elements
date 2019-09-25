@@ -4,13 +4,12 @@ namespace Click\Elements;
 
 use Click\Elements\Commands\InstallElements;
 use Click\Elements\Commands\MakeElement;
-use Click\Elements\Elements\ElementType;
-use Click\Elements\Elements\Module;
-use Click\Elements\Elements\TypedProperty;
 use Click\Elements\Events\ModelSaved;
-use Click\Elements\Listeners\UpdateElements;
+use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
+use Click\Elements\Observers\ModelObserver;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,7 +20,7 @@ class ElementsServiceProvider extends ServiceProvider
 {
     protected $listeners = [
         ModelSaved::class => [
-            UpdateElements::class
+            UpdateElement::class
         ]
     ];
 
@@ -34,6 +33,10 @@ class ElementsServiceProvider extends ServiceProvider
     {
         $this->bootListeners();
         $this->bootObservers();
+
+        if (config('elements.auto_install')) {
+            app(Elements::class)->install();
+        }
 
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
@@ -57,6 +60,7 @@ class ElementsServiceProvider extends ServiceProvider
      */
     protected function bootObservers()
     {
+//        Model::observe(ModelObserver::class);
         Entity::observe(EntityObserver::class);
     }
 
@@ -65,6 +69,10 @@ class ElementsServiceProvider extends ServiceProvider
      */
     protected function bootForConsole()
     {
+        $this->publishes([
+            __DIR__ . '/../config/elements.php' => config_path('elements.php'),
+        ], 'elements.config');
+
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->commands([
@@ -78,11 +86,8 @@ class ElementsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->registerServices();
-    }
+        $this->mergeConfigFrom(__DIR__ . '/../config/elements.php', 'elements');
 
-    protected function registerServices()
-    {
         $this->app->singleton(Elements::class, function ($app) {
             return new Elements();
         });

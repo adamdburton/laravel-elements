@@ -3,42 +3,18 @@
 namespace Click\Elements\Elements;
 
 use Click\Elements\Element;
-use Click\Elements\Schema;
+use Click\Elements\Schemas\ElementSchema;
 
-/**
- * Module Element definition.
- */
 class TypedProperty extends Element
 {
     /**
-     * @param Schema $schema
+     * @param ElementSchema $schema
      */
-    public function getDefinition(Schema $schema)
+    public function getDefinition(ElementSchema $schema)
     {
         $schema->string('label');
         $schema->string('key');
         $schema->string('type');
         $schema->boolean('required');
-    }
-
-    /**
-     * @param $label
-     * @return $this
-     */
-    public function label($label)
-    {
-        $this->label = $label;
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function required()
-    {
-        $this->required = true;
-
-        return $this;
     }
 }

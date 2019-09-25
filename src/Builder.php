@@ -2,7 +2,11 @@
 
 namespace Click\Elements;
 
+use Click\Elements\Exceptions\ElementValidationFailed;
+use Click\Elements\Exceptions\ElementValidationFails;
 use Click\Elements\Models\Entity;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Class Builder
@@ -22,7 +26,7 @@ class Builder
     {
         $this->element = $element;
 
-        $this->query = Entity::query();
+        $this->query = Entity::query()->with('properties')->whereProperty('type', $this->element->getElementTypeName());
     }
 
     /**
@@ -54,6 +58,14 @@ class Builder
     }
 
     /**
+     * @return Collection
+     */
+    public function get()
+    {
+        return $this->query->get();
+    }
+
+    /**
      * @return bool
      */
     public function exists()
@@ -62,9 +74,22 @@ class Builder
     }
 
     /**
+     * @param null $attributes
+     * @param null $id
+     * @return Element
+     * @throws Exceptions\ElementTypeMissingException
+     */
+    public function factory($attributes = null, $id = null)
+    {
+        return $this->element->getElementDefinition()->factory($attributes, $id);
+    }
+
+    /**
      * @param array $attributes
      * @return mixed
-     * @throws \Exception
+     * @throws Exceptions\ElementTypeMissingException
+     * @throws Exceptions\PropertyMissingException
+     * @throws ElementValidationFailed
      */
     public function create(array $attributes)
     {
@@ -80,7 +105,7 @@ class Builder
 
         $entity->properties()->sync($relations);
 
-        $element = $this->element->getElementDefinition()->factory($attributes, $entity->id);
+        $element = $this->factory($attributes, $entity->id);
 
         return $element;
     }
@@ -90,6 +115,7 @@ class Builder
      * @return Element
      * @throws Exceptions\ElementTypeMissingException
      * @throws Exceptions\PropertyMissingException
+     * @throws ElementValidationFailed
      */
     public function update(array $attributes)
     {
@@ -107,7 +133,7 @@ class Builder
 
         $entity->properties()->sync($relations);
 
-        $element = $this->element->getElementDefinition()->factory($attributes);
+        $element = $this->factory($attributes);
 
         return $element;
     }
@@ -124,7 +150,31 @@ class Builder
         })->filter()->all();
     }
 
+    /**
+     * @param array $attributes
+     * @throws Exceptions\ElementTypeMissingException
+     * @throws ElementValidationFailed
+     */
     protected function validate(array $attributes)
     {
+        $validator = $this->validateWith($attributes);
+
+        if ($failed = $validator->fails()) {
+            throw new ElementValidationFailed($this->element, $validator);
+        }
+    }
+
+    /**
+     * @param $attributes
+     * @return \Illuminate\Contracts\Validation\Validator
+     * @throws Exceptions\ElementTypeMissingException
+     */
+    public function validateWith($attributes)
+    {
+        $rules = $this->element->getElementDefinition()->getValidationRules();
+
+        $validator = Validator::make($attributes, $rules);
+
+        return $validator;
     }
 }

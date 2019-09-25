@@ -4,7 +4,7 @@ namespace Click\Elements\Tests;
 
 use Click\Elements\Elements;
 use Click\Elements\ElementsServiceProvider;
-use Click\Elements\Tests\Elements\TestElement;
+use Click\Elements\Tests\Assets\PlainElement;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 /**
@@ -17,9 +17,6 @@ abstract class TestCase extends BaseTestCase
 
     /** @var bool */
     protected $elementsInstalled = true;
-
-    /** @var bool */
-    protected $testElementInstalled = true;
 
     public function setUp(): void
     {
@@ -36,10 +33,6 @@ abstract class TestCase extends BaseTestCase
 
         if ($this->elementsInstalled) {
             $this->artisan('elements:install');
-        }
-
-        if ($this->testElementInstalled) {
-            $this->elements->register(TestElement::class)->install();
         }
     }
 

@@ -2,9 +2,9 @@
 
 namespace Click\Elements\Contracts;
 
-use Click\Elements\Schema;
+use Click\Elements\Schemas\ElementSchema;
 
 interface ElementContract
 {
-    public function getDefinition(Schema $schema);
+    public function getDefinition(ElementSchema $schema);
 }

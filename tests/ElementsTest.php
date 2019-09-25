@@ -12,7 +12,7 @@ class ElementsTest extends TestCase
     {
         $elementType = $this->elements->register(TestElement::class);
 
-        $this->assertSame('testElement', $elementType->getType());
+        $this->assertSame(TestElement::factory()->getElementTypeName(), $elementType->getType());
     }
 
     public function test_install()
@@ -21,6 +21,6 @@ class ElementsTest extends TestCase
 
         $elementType = $elementType->install();
 
-        $this->assertSame('elementType', $elementType->getElementTypeName());
+        $this->assertSame(TestElement::factory()->getElementTypeName(), $elementType->getElementTypeName());
     }
 }

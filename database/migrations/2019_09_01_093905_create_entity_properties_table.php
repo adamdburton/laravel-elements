@@ -20,7 +20,7 @@ class CreateEntityPropertiesTable extends Migration
 
             $table->boolean('boolean_value')->nullable();
             $table->integer('integer_value', false, false)->nullable();
-            $table->float('float_value', 8, 2)->nullable();
+            $table->double('double_value', 8, 2)->nullable();
             $table->string('string_value', 255)->nullable();
             $table->text('text_value')->nullable();
             $table->json('json_value')->nullable();
@@ -31,7 +31,7 @@ class CreateEntityPropertiesTable extends Migration
             $table->index(['entity_id', 'property_id'], 'fk_index');
             $table->index(['entity_id', 'property_id', 'boolean_value'], 'fk_boolean_index');
             $table->index(['entity_id', 'property_id', 'integer_value'], 'fk_integer_index');
-            $table->index(['entity_id', 'property_id', 'float_value'], 'fk_float_index');
+            $table->index(['entity_id', 'property_id', 'double_value'], 'fk_double_index');
             $table->index(['entity_id', 'property_id', 'string_value'], 'fk_string_index');
             $table->index(['entity_id', 'property_id', 'timestamp_value'], 'fk_timestamp_index');
 //            $table->index(['entity_id', 'property_id', 'text_value'], 'text_index');

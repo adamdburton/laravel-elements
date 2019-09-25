@@ -2,14 +2,16 @@
 
 namespace Click\Elements\Tests\Services;
 
-use Click\Elements\Tests\Elements\TestElement;
+use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\TestCase;
 
 class ElementTest extends TestCase
 {
     public function test_create_element()
     {
-        $element = TestElement::create([
+        $this->elements->register(PlainElement::class);
+
+        $element = PlainElement::create([
             'string' => $string = 'some string',
             'integer' => $integer = 123456789,
             'array' => $array = ['some', 'array', 'data'],
