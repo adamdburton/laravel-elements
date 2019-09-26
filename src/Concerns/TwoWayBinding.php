@@ -39,5 +39,4 @@ trait TwoWayBinding
     {
         return $model->toArray();
     }
-
 }
