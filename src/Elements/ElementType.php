@@ -11,11 +11,11 @@ use Click\Elements\Schemas\ElementSchema;
 class ElementType extends Element
 {
     /**
-     * @param Schema $schema
+     * @param ElementSchema $schema
      */
     public function getDefinition(ElementSchema $schema)
     {
-        $schema->string('name');
-        $schema->json('definition');
+        $schema->string('name')->required();
+        $schema->array('properties')->required();
     }
 }

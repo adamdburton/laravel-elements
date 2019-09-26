@@ -3,11 +3,11 @@
 namespace Click\Elements\Tests\Assets;
 
 use Click\Elements\Element;
-use Click\Elements\Schema;
+use Click\Elements\Schemas\ElementSchema;
 
 class ValidationElement extends Element
 {
-    public function getDefinition(Schema $schema)
+    public function getDefinition(ElementSchema $schema)
     {
         $schema->string('string')->required();
         $schema->boolean('boolean')->required();

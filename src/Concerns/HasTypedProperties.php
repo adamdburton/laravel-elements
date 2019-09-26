@@ -2,9 +2,8 @@
 
 namespace Click\Elements\Concerns;
 
-use Click\Elements\Elements\TypedProperty;
 use Click\Elements\Exceptions\PropertyMissingException;
-use Click\Elements\Models\Property;
+use Click\Elements\PropertyDefinition;
 use Click\Elements\PropertyType;
 use Illuminate\Support\Str;
 
@@ -16,7 +15,7 @@ trait HasTypedProperties
     /** @var array */
     protected $attributes = [];
 
-    /** @var TypedProperty[] */
+    /** @var array */
     protected $properties = [];
 
     /**
@@ -124,7 +123,7 @@ trait HasTypedProperties
         if ($this->hasSetter($key)) {
             $this->runSetter($key, $value);
         } else {
-            $property = $this->getElementDefinition()->getProperty($key);
+            $property = $this->getElementDefinition()->getPropertyDefinition($key);
 
             if (!$property) {
 //            dd($key, $this->getElementDefinition());
@@ -179,12 +178,12 @@ trait HasTypedProperties
     }
 
     /**
-     * @param Property $property
+     * @param PropertyDefinition $definition
      * @param $value
      * @return bool
      */
-    protected function checkAttributeType(Property $property, $value)
+    protected function checkAttributeType(PropertyDefinition $definition, $value)
     {
-        return PropertyType::validateValue($property->type, $value);
+        return PropertyType::validateValue($definition->getType(), $value);
     }
 }

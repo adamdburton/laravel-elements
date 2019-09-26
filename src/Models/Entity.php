@@ -37,7 +37,7 @@ class Entity extends Model
         $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
             $query
                 ->where('property_id', $property->id)
-                ->where($prop->type . '_value', $value ? $operator : '=', $value ?? $operator);
+                ->where($property->type . '_value', $value ? $operator : '=', $value ?? $operator);
         });
     }
 

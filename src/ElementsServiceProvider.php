@@ -9,6 +9,7 @@ use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
 use Click\Elements\Observers\ModelObserver;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,7 @@ class ElementsServiceProvider extends ServiceProvider
      * Perform post-registration booting of services.
      *
      * @return void
+     * @throws BindingResolutionException
      */
     public function boot()
     {
@@ -66,6 +68,7 @@ class ElementsServiceProvider extends ServiceProvider
 
     /**
      * @return void
+     * @throws BindingResolutionException
      */
     protected function bootForConsole()
     {

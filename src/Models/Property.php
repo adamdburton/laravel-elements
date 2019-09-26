@@ -2,9 +2,6 @@
 
 namespace Click\Elements\Models;
 
-use Click\Elements\Element;
-use Click\Elements\ElementDefinition;
-use Click\Elements\Elements\TypedProperty;
 use Click\Elements\PropertyType;
 use Illuminate\Database\Eloquent\Model;
 
@@ -27,11 +24,6 @@ class Property extends Model
     }
 
     // Scopes
-
-    public function scopeFromTypedProperty($query, TypedProperty $typedProperty)
-    {
-        $query->key($typedProperty->key)->type($typedProperty->type);
-    }
 
     public function scopeKey($query, $property)
     {

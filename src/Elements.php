@@ -2,9 +2,7 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Elements\ElementType;
-use Click\Elements\Elements\TypedProperty;
 use Click\Elements\Exceptions\ElementClassInvalidException;
 use Click\Elements\Exceptions\ElementTypeNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
@@ -15,60 +13,39 @@ use Click\Elements\Exceptions\TablesMissingException;
 class Elements
 {
     /** @var ElementDefinition[] */
-    protected $definitions = [];
+    protected $elementDefinitions = [];
 
     /**
      * @param string $class
      * @return ElementDefinition
-     * @throws ElementClassInvalidException
      */
     public function register(string $class)
     {
-        $definition = $this->createDefinition($class);
-
-        $this->definitions[$definition->getType()] = $definition;
-
-        return $definition;
-    }
-
-    /**
-     * @param string $class
-     * @return ElementDefinition
-     * @throws ElementClassInvalidException
-     */
-    protected function createDefinition(string $class)
-    {
-        $this->validateClass($class);
-
         $definition = new ElementDefinition($class);
-        $type = $definition->getType();
+
+        $this->elementDefinitions[$definition->getClass()] = $definition;
 
         return $definition;
     }
-
     /**
      * @param $type
      * @throws ElementTypeNotRegisteredException
      */
     protected function validateType($type)
     {
-        if (!isset($this->definitions[$type])) {
+        if (!isset($this->elementDefinitions[$type])) {
             throw new ElementTypeNotRegisteredException($type);
         }
     }
 
     /**
-     * @throws ElementClassInvalidException
      * @throws TablesMissingException
      */
     public function install()
     {
         $this->checkTablesExist();
 
-//        Property::create(['key' => 'elementType.name', 'type' => 'string']);
-
         $this->register(ElementType::class)->install();
-        $this->register(TypedProperty::class)->install();
 
         foreach ($this->getDefinitions() as $type => $definition) {
             $definition->install();
@@ -106,11 +83,11 @@ class Elements
      */
     public function getElementDefinition(string $type)
     {
-        if (!isset($this->definitions[$type])) {
+        if (!isset($this->elementDefinitions[$type])) {
             throw new ElementTypeNotRegisteredException($type);
         }
 
-        return $this->definitions[$type];
+        return $this->elementDefinitions[$type];
     }
 
     /**
@@ -130,10 +107,9 @@ class Elements
      */
     protected function getDefinitions()
     {
-        return array_filter($this->definitions, function (ElementDefinition $definition) {
+        return array_filter($this->elementDefinitions, function (ElementDefinition $definition) {
             return !in_array($definition->getClass(), [
-                ElementType::class,
-                TypedProperty::class
+                ElementType::class
             ]);
         });
     }

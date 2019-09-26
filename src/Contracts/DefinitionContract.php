@@ -4,12 +4,8 @@ namespace Click\Elements\Contracts;
 
 interface DefinitionContract
 {
-    /** @return string */
-    public function getSchema();
-
     /**
-     * @param DefinitionContract $definition
-     * @return void
+     * @return mixed
      */
-    public function validateDefinition(DefinitionContract $definition);
+    public function install();
 }

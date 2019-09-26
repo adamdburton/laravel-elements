@@ -6,5 +6,9 @@ use Click\Elements\Schemas\ElementSchema;
 
 interface ElementContract
 {
+    /**
+     * @param ElementSchema $schema
+     * @return void
+     */
     public function getDefinition(ElementSchema $schema);
 }

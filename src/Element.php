@@ -4,16 +4,15 @@ namespace Click\Elements;
 
 use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
-use Click\Elements\Definitions\ElementDefinition;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
  * The base Element class. You should extend this.
- * @method static create(array $attributes)
- * @method static update(array $attributes)
+ * @method static Element create(array $attributes)
+ * @method static Element update(array $attributes)
  */
 abstract class Element implements ElementContract
 {
@@ -32,6 +31,7 @@ abstract class Element implements ElementContract
     /**
      * @param null $attributes
      * @param bool $raw
+     * @throws Exceptions\PropertyMissingException
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -58,6 +58,7 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
+     * @throws Exceptions\PropertyMissingException
      */
     public static function __callStatic($method, $parameters)
     {
@@ -102,6 +103,7 @@ abstract class Element implements ElementContract
     /**
      * @return ElementDefinition
      * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function getElementDefinition()
     {
@@ -113,16 +115,18 @@ abstract class Element implements ElementContract
 
     /**
      * @return mixed
-     * @throws Exceptions\PropertyMissingException
      * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws BindingResolutionException
      */
-    public function getProperties()
+    public function getPropertyModels()
     {
-        return $this->getElementDefinition()->getProperties();
+        return $this->getElementDefinition()->getPropertyModels();
     }
 
     /**
      * @return Validator
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function validate()
     {

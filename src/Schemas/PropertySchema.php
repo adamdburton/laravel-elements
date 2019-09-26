@@ -2,17 +2,33 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Schema;
 
 /**
  * Class ElementSchema
  */
 class PropertySchema extends Schema
 {
-    /** @return string */
-    public function getDefinitionClass()
+    /**
+     * @param $key
+     * @return PropertySchema
+     */
+    public function key($key)
     {
-        return PropertyDefinition::class;
+        $this->schema['key'] = $key;
+
+        return $this;
+    }
+
+    /**
+     * @param $type
+     * @return PropertySchema
+     */
+    public function type($type)
+    {
+        $this->schema['type'] = $type;
+
+        return $this;
     }
 
     /**
@@ -20,7 +36,7 @@ class PropertySchema extends Schema
      */
     public function required()
     {
-        $this->definition['required'] = true;
+        $this->schema['required'] = true;
 
         return $this;
     }
@@ -31,7 +47,7 @@ class PropertySchema extends Schema
      */
     public function label($label)
     {
-        $this->definition['label'] = $label;
+        $this->schema['label'] = $label;
 
         return $this;
     }
@@ -42,8 +58,29 @@ class PropertySchema extends Schema
      */
     public function validation(array $rules)
     {
-        $this->definition['validation'] = $rules;
+        $this->schema['validation'] = $rules;
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSchema()
+    {
+        // Move the required field to validation
+
+        if (isset($this->schema['required'])) {
+            $validation = $this->schema['validation'] ?? [];
+
+            if (!in_array('required', $validation)) {
+                $validation[] = 'required';
+            }
+
+            unset($this->schema['required']);
+            $this->schema['validation'] = $validation;
+        }
+
+        return $this->schema;
     }
 }

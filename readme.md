@@ -2,35 +2,37 @@
 
 ![Elements](https://i.imgur.com/byzJHiI.png)
 
-`// TODO: Write a description!`
+```
+// TODO: Write this!
+```
 
 ## Installation  
   
-Via Composer  
-  
+Via Composer
+
 ```bash  
 $ composer require click/elements  
 ```  
   
-### Laravel 5.5+  
+### Laravel 5.5+
   
 Sit back and relax. You've done too much already. The   package will auto-register after composer runs. ⛵️  
   
-### Laravel 5.4 & below  
+### Laravel 5.4 & below
   
 Add this to your `config/app.php` file under `providers`.  
   
 ```  
-Click\Elements\ElementsServiceProvider::class,  
+Click\Elements\ElementsServiceProvider::class,
 ```  
   
-If you want to use the `Elements` facade then add this to your `config/app.php` file under `aliases`.  
+If you want to use the `Elements` facade then add this to your `config/app.php` file under `aliases`.
   
 ```  
-'Elements' => Click\Elements\Facades\Elements::class,  
+'Elements' => Click\Elements\Facades\Elements::class,
 ```  
-  
-## Usage  
+
+## Usage
   
 ### Creating Element Types
   
@@ -71,7 +73,7 @@ class MyElement extends Element
 }  
 ```
 
-You can generate elements for use with [two-way binding](#two-way-binding) by specifying a model when using the `make:element` command.
+You can generate elements for use with [two-way binding](#two-way-binding) by specifying a model class when using the `make:element` command.
 
 ```bash
 $ php artisan make:element MyElement --model=App\\MyModel
@@ -122,7 +124,7 @@ class Book extends Element
 Creating new elements is much the same as Eloquent models, but assigning relationships is a little different.
 
 ```php
-<?php
+<?
 
 $author = Author::create([
     'name' => 'Neal Stephenson'
@@ -237,9 +239,9 @@ If you discover any security related issues, please email developers@clickdigita
   
 - [Click][link-author]  
 - [All Contributors][link-contributors]  
-  
-## License  
-  
+
+## License
+
 Proprietary. Please see the [license file](license.md) for more information.  
   
 [ico-version]: https://img.shields.io/packagist/v/click/elements.svg?style=flat-square  

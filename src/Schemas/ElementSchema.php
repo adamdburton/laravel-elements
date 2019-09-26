@@ -2,113 +2,104 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\PropertyType;
+use Click\Elements\Schema;
 
 /**
  * Class ElementSchema
  */
 class ElementSchema extends Schema
 {
-    /** @return string */
-    public function getDefinitionClass()
-    {
-        return ElementDefinition::class;
-    }
-
     /**
      * @param $key
-     * @param $type
-     * @return PropertyDefinition
-     */
-    protected function add($key, $type)
-    {
-        if (!isset($this->definition[$key])) {
-            $schema = new PropertySchema();
-
-            return $this->definition[$key] = $schema->type($type);
-        }
-    }
-
-    /**
-     * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function boolean($key)
     {
-        return $this->add($key, PropertyType::BOOLEAN);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::BOOLEAN);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function integer($key)
     {
-        return $this->add($key, PropertyType::INTEGER);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::INTEGER);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function double($key)
     {
-        return $this->add($key, PropertyType::DOUBLE);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::DOUBLE);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function string($key)
     {
-        return $this->add($key, PropertyType::STRING);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::STRING);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function text($key)
     {
-        return $this->add($key, PropertyType::TEXT);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::TEXT);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function array($key)
     {
-        return $this->add($key, PropertyType::ARRAY);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::ARRAY);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function json($key)
     {
-        return $this->add($key, PropertyType::JSON);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::JSON);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function relation($key)
     {
-        return $this->add($key, PropertyType::RELATION);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::RELATION);
     }
 
     /**
      * @param $key
-     * @return PropertyDefinition
+     * @return PropertySchema
      */
     public function timestamp($key)
     {
-        return $this->add($key, PropertyType::TIMESTAMP);
+        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::TIMESTAMP);
+    }
+
+    /**
+     * @return array
+     */
+    public function getSchema()
+    {
+        $properties = collect($this->schema)->map(function (PropertySchema $schema) {
+            return $schema->getSchema();
+        })->all();
+
+        return $properties;
     }
 }

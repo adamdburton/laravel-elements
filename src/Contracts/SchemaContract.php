@@ -2,15 +2,13 @@
 
 namespace Click\Elements\Contracts;
 
+use Click\Elements\Schemas\PropertySchema;
 use Click\Elements\Schemas\Schema;
 
 interface SchemaContract
 {
-    public function getSchema();
-
     /**
-     * @param Schema $schema
-     * @return void
+     * @return array
      */
-    public function getDefinition(Schema $schema);
+    public function getSchema();
 }

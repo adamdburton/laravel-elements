@@ -9,7 +9,7 @@ class ElementTest extends TestCase
 {
     public function test_create_element()
     {
-        $this->elements->register(PlainElement::class);
+        $this->elements->register(PlainElement::class)->install();
 
         $element = PlainElement::create([
             'string' => $string = 'some string',
@@ -24,7 +24,9 @@ class ElementTest extends TestCase
 
     public function test_update_element()
     {
-        $element = TestElement::create([
+        $this->elements->register(PlainElement::class)->install();
+
+        $element = PlainElement::create([
             'string' => 'some string',
             'integer' => 123456789,
             'array' => ['some', 'array', 'data'],

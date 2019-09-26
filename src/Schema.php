@@ -1,23 +1,16 @@
 <?php
 
-namespace Click\Elements\Schemas;
+namespace Click\Elements;
+
+use Click\Elements\Contracts\SchemaContract;
 
 /**
  * A blueprint-like interface for defining Element properties.
  */
-abstract class Schema
+abstract class Schema implements SchemaContract
 {
-    /** @var array */
-    protected $definition = [];
-
-    /** @return string */
-    abstract public function getDefinitionClass();
-
     /**
-     * @return array
+     * @var array
      */
-    public function getDefinition()
-    {
-        return $this->definition;
-    }
+    protected $schema = [];
 }

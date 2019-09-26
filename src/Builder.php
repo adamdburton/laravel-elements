@@ -5,6 +5,7 @@ namespace Click\Elements;
 use Click\Elements\Exceptions\ElementValidationFailed;
 use Click\Elements\Exceptions\ElementValidationFails;
 use Click\Elements\Models\Entity;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,19 +27,7 @@ class Builder
     {
         $this->element = $element;
 
-        $this->query = Entity::query()->with('properties')->whereProperty('type', $this->element->getElementTypeName());
-    }
-
-    /**
-     * @param $type
-     * @return $this
-     * @see Entity::scopeWhereHasProperty()
-     */
-    public function type($type)
-    {
-        $this->query->whereHasProperty('elementType.type', $type);
-
-        return $this;
+        $this->query = Entity::query()->with('properties');
     }
 
     /**
@@ -46,11 +35,13 @@ class Builder
      * @param string $operator
      * @param null $value
      * @return $this
+     * @throws BindingResolutionException
+     * @throws Exceptions\ElementTypeNotRegisteredException
      * @see Entity::scopeWhereHasProperty()
      */
     public function where($property, $operator = '', $value = null)
     {
-        $property = $this->element->getElementType()->getProperty($property);
+        $property = $this->element->getElementDefinition()->getPropertyModel($property);
 
         $this->query->whereHasProperty($property, $operator, $value);
 
@@ -77,26 +68,28 @@ class Builder
      * @param null $attributes
      * @param null $id
      * @return Element
-     * @throws Exceptions\ElementTypeMissingException
+     * @throws BindingResolutionException
+     * @throws Exceptions\ElementTypeNotRegisteredException
      */
     public function factory($attributes = null, $id = null)
     {
-        return $this->element->getElementDefinition()->factory($attributes, $id);
+        return $this->element->getElementDefinition()->element($attributes, $id);
     }
 
     /**
      * @param array $attributes
      * @return mixed
-     * @throws Exceptions\ElementTypeMissingException
-     * @throws Exceptions\PropertyMissingException
+     * @throws BindingResolutionException
      * @throws ElementValidationFailed
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws Exceptions\PropertyMissingException
      */
     public function create(array $attributes)
     {
         $this->validate($attributes);
 
         $relations = $this->buildRelations(
-            $this->element->getProperties(),
+            $this->element->getPropertyModels(),
             $attributes
         );
 
@@ -113,9 +106,10 @@ class Builder
     /**
      * @param array $attributes
      * @return Element
-     * @throws Exceptions\ElementTypeMissingException
-     * @throws Exceptions\PropertyMissingException
+     * @throws BindingResolutionException
      * @throws ElementValidationFailed
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws Exceptions\PropertyMissingException
      */
     public function update(array $attributes)
     {
@@ -124,7 +118,7 @@ class Builder
         $attributes = array_merge($this->element->getAttributes(), $attributes);
 
         $relations = $this->buildRelations(
-            $this->element->getProperties(),
+            $this->element->getPropertyModels(),
             $attributes
         );
 
@@ -152,8 +146,9 @@ class Builder
 
     /**
      * @param array $attributes
-     * @throws Exceptions\ElementTypeMissingException
+     * @throws BindingResolutionException
      * @throws ElementValidationFailed
+     * @throws Exceptions\ElementTypeNotRegisteredException
      */
     protected function validate(array $attributes)
     {
@@ -167,7 +162,8 @@ class Builder
     /**
      * @param $attributes
      * @return \Illuminate\Contracts\Validation\Validator
-     * @throws Exceptions\ElementTypeMissingException
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function validateWith($attributes)
     {

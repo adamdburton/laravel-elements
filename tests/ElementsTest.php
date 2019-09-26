@@ -2,25 +2,34 @@
 
 namespace Click\Elements\Tests;
 
-use Click\Elements\Tests\Elements\TestElement;
+use Click\Elements\Exceptions\ElementTypeNotInstalledException;
+use Click\Elements\Tests\Assets\PlainElement;
+use Click\Elements\Tests\Assets\ValidationElement;
 
 class ElementsTest extends TestCase
 {
     protected $testElementInstalled = false;
 
-    public function test_register()
+    public function test_register_without_install()
     {
-        $elementType = $this->elements->register(TestElement::class);
+        $elementType = $this->elements->register(PlainElement::class);
 
-        $this->assertSame(TestElement::factory()->getElementTypeName(), $elementType->getType());
+        $this->expectException(ElementTypeNotInstalledException::class);
+
+        PlainElement::create([]);
     }
 
-    public function test_install()
-    {
-        $elementType = $this->elements->register(TestElement::class);
-
-        $elementType = $elementType->install();
-
-        $this->assertSame(TestElement::factory()->getElementTypeName(), $elementType->getElementTypeName());
-    }
+//    public function test_validation()
+//    {
+//        $elementType = $this->elements->register(ValidationElement::class)->install();
+//
+//        $this->expectException(ElementTypeNotInstalledException::class);
+//
+//        ValidationElement::create([]);
+//    }
+//
+//    public function test_builder_where()
+//    {
+//        $this->elements->register(ValidationElement::class)->install();
+//    }
 }
