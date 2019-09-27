@@ -11,6 +11,5 @@ class EntityObserver
 {
     public function creating(Entity $entity)
     {
-
     }
 }

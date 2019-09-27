@@ -25,6 +25,4 @@ abstract class Schema implements SchemaContract
 
         return $this;
     }
-
-
 }

@@ -25,10 +25,10 @@ phpunit:
     - ./vendor/bin/phpunit --coverage-clover clover.xml --colors=never --stderr
     - php coverage-checker.php clover.xml 40
 
-phpcs:
-  stage: test
-  image: edbizarro/gitlab-ci-pipeline-php:7.3
-  script:
-    - ./vendor/bin/phpcs --standard=PSR1,PSR2,PSR12 --extensions=php -p src
-  dependencies:
-    - composer
+# phpcs:
+#  stage: test
+#  image: edbizarro/gitlab-ci-pipeline-php:7.3
+#  script:
+#    - ./vendor/bin/phpcs --standard=PSR1,PSR2,PSR12 --extensions=php -p src
+#  dependencies:
+#    - composer
