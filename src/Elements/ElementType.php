@@ -6,7 +6,7 @@ use Click\Elements\Element;
 use Click\Elements\Schemas\ElementSchema;
 
 /**
- * Module Element definition.
+ * Element for element types
  */
 class ElementType extends Element
 {
@@ -15,7 +15,12 @@ class ElementType extends Element
      */
     public function getDefinition(ElementSchema $schema)
     {
-        $schema->string('name')->required();
-        $schema->array('properties')->required();
+        $schema->string('name')
+            ->description('')
+            ->required();
+
+        $schema->array('properties')
+            ->description('Holds the key to ID lookups for element properties.')
+            ->required();
     }
 }

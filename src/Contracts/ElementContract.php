@@ -4,6 +4,9 @@ namespace Click\Elements\Contracts;
 
 use Click\Elements\Schemas\ElementSchema;
 
+/**
+ * Contract for Elements to implement
+ */
 interface ElementContract
 {
     /**

@@ -2,26 +2,40 @@
 
 namespace Click\Elements\Models;
 
+use Click\Elements\Pivots\EntityProperty;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Model for storing entities
+ */
 class Entity extends Model
 {
     protected $table = 'elements_entities';
 
     // Relationships
 
+    /**
+     * @return BelongsToMany
+     */
     public function parents()
     {
         return $this->belongsToMany(Entity::class, 'element_entity_relations', 'child_entity_id', 'parent_entity_id')
             ->withPivot('property_id');
     }
 
+    /**
+     * @return BelongsToMany
+     */
     public function children()
     {
         return $this->belongsToMany(Entity::class, 'element_entity_relations', 'parent_entity_id', 'child_entity_id')
             ->withPivot('property_id');
     }
 
+    /**
+     * @return BelongsToMany
+     */
     public function properties()
     {
         return $this->belongsToMany(Property::class, 'elements_entity_properties')

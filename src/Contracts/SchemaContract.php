@@ -2,9 +2,9 @@
 
 namespace Click\Elements\Contracts;
 
-use Click\Elements\Schemas\PropertySchema;
-use Click\Elements\Schemas\Schema;
-
+/**
+ * Contract for Schemas to implement
+ */
 interface SchemaContract
 {
     /**

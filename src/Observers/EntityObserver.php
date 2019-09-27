@@ -3,14 +3,14 @@
 namespace Click\Elements\Observers;
 
 use Click\Elements\Models\Entity;
-use Str;
 
+/**
+ * Watches for entity saving and updating to replicate to models
+ */
 class EntityObserver
 {
     public function creating(Entity $entity)
     {
-//        if (!$entity->uuid) {
-//            $entity->uuid = Str::orderedUuid();
-//        }
+
     }
 }

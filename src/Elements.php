@@ -6,6 +6,7 @@ use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementClassInvalidException;
 use Click\Elements\Exceptions\ElementTypeNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Registers, instantiates and persists Elements.
@@ -25,8 +26,11 @@ class Elements
 
         $this->elementDefinitions[$definition->getClass()] = $definition;
 
+        Log::debug('Registering element.', ['element' => $definition->getClass()]);
+
         return $definition;
     }
+
     /**
      * @param $type
      * @throws ElementTypeNotRegisteredException
@@ -45,9 +49,13 @@ class Elements
     {
         $this->checkTablesExist();
 
+        Log::debug('Registering and installing ElementType element.');
+
         $this->register(ElementType::class)->install();
 
         foreach ($this->getDefinitions() as $type => $definition) {
+            Log::debug('Installing registered element.', ['element' => $definition->getClass()]);
+
             $definition->install();
         }
     }

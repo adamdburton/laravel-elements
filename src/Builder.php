@@ -3,14 +3,13 @@
 namespace Click\Elements;
 
 use Click\Elements\Exceptions\ElementValidationFailed;
-use Click\Elements\Exceptions\ElementValidationFails;
 use Click\Elements\Models\Entity;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * Class Builder
+ * Element query builder
  */
 class Builder
 {

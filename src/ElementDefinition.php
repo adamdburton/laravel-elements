@@ -7,9 +7,10 @@ use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementTypeNotInstalledException;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\ElementSchema;
+use Illuminate\Support\Facades\Log;
 
 /**
- * Class ElementType
+ * Element definition container
  */
 class ElementDefinition implements DefinitionContract
 {
@@ -68,6 +69,8 @@ class ElementDefinition implements DefinitionContract
 
         // Install the properties required for the Element.
 
+        Log::debug('Creating property models for element.', ['properties' => implode(', ', array_keys($this->properties)), 'element' => $this->getClass()]);
+
         $propertyModels = collect($this->properties)->map(function (PropertyDefinition $property) {
             return $property->install();
         });
@@ -78,9 +81,11 @@ class ElementDefinition implements DefinitionContract
 
         $this->installed = true;
 
+        Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
+
         return ElementType::create([
             'name' => $this->getClass(),
-            'properties' => $propertyModels->pluck('id')
+            'properties' => $propertyModels->pluck('id', 'key') // Key to ID lookup field
         ]);
     }
 

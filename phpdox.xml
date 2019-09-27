@@ -12,6 +12,7 @@
                 </source>
                 <source type="phpunit">
                     <filter directory="${phpDox.project.source}"/>
+                    <coverage path="logs/coverage/xml" />
                 </source>
             </enrich>
             <build engine="html" enabled="true" output="html">

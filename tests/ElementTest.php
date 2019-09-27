@@ -5,6 +5,9 @@ namespace Click\Elements\Tests\Services;
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\TestCase;
 
+/**
+ * @covers \Click\Elements\Element
+ */
 class ElementTest extends TestCase
 {
     public function test_create_element()

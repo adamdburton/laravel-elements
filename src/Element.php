@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
- * The base Element class. You should extend this.
+ * The base Element class. You should extend this
+ *
  * @method static Element create(array $attributes)
  * @method static Element update(array $attributes)
  */

@@ -5,6 +5,9 @@ namespace Click\Elements\Concerns;
 use Click\Elements\Element;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Provides two way binding attributes and methods for Elements
+ */
 trait TwoWayBinding
 {
     /**

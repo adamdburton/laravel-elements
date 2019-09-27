@@ -2,9 +2,13 @@
 
 namespace Click\Elements\Models;
 
+use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\PropertyType;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Model for storing properties
+ */
 class Property extends Model
 {
     protected $table = 'elements_properties';
@@ -37,6 +41,9 @@ class Property extends Model
 
     // Attributes
 
+    /**
+     * @return string
+     */
     public function getTypeColumnAttribute()
     {
         $type = $this->type;

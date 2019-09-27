@@ -5,6 +5,9 @@ namespace Click\Elements\Listeners;
 use Click\Elements\Concerns\TwoWayBinding;
 use Click\Elements\Events\ModelSaved;
 
+/**
+ * Updates elements when models are saved or updated
+ */
 class UpdateElement
 {
     /**

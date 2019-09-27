@@ -5,6 +5,9 @@ namespace Click\Elements;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Models\Property;
 
+/**
+ * Property definition container
+ */
 class PropertyDefinition implements DefinitionContract
 {
     /** @var array */

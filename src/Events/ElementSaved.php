@@ -2,11 +2,10 @@
 
 namespace Click\Elements\Events;
 
-use Click\Elements\Entity;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Triggered when an Element is persisted or updated.
+ * Triggered when an Element is saved or updated.
  */
 class ElementSaved
 {

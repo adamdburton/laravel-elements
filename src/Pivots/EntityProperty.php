@@ -1,9 +1,12 @@
 <?php
 
-namespace Click\Elements\Models;
+namespace Click\Elements\Pivots;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+/**
+ * Pivot for storing entity properties
+ */
 class EntityProperty extends Pivot
 {
     public $incrementing = true;

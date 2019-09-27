@@ -8,7 +8,7 @@ use Click\Elements\PropertyType;
 use Illuminate\Support\Str;
 
 /**
- * Trait HasTypedAttributes
+ * Provides typed properties for Elements
  */
 trait HasTypedProperties
 {
