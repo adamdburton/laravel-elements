@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Exceptions;
 
-use Click\Elements\ElementDefinition;
+use Click\Elements\Definitions\ElementDefinition;
 use Exception;
 
 class SchemaPropertyAlreadyDefined extends Exception

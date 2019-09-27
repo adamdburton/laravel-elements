@@ -7,8 +7,8 @@ use Exception;
 
 class PropertyMissingException extends Exception
 {
-    public function __construct(PropertyDefinition $propertyDefinition)
+    public function __construct(string $key)
     {
-        parent::__construct(sprintf('"%s" is not a valid property.', $typedProperty->key));
+        parent::__construct(sprintf('"%s" is not a valid property.', $key));
     }
 }

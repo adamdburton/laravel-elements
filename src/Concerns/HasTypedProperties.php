@@ -2,8 +2,8 @@
 
 namespace Click\Elements\Concerns;
 
+use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Exceptions\PropertyMissingException;
-use Click\Elements\PropertyDefinition;
 use Click\Elements\PropertyType;
 use Illuminate\Support\Str;
 

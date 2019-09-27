@@ -1,8 +1,9 @@
 <?php
 
-namespace Click\Elements;
+namespace Click\Elements\Definitions;
 
 use Click\Elements\Contracts\DefinitionContract;
+use Click\Elements\Element;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementTypeNotInstalledException;
 use Click\Elements\Models\Property;

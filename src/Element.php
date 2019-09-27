@@ -4,6 +4,7 @@ namespace Click\Elements;
 
 use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
+use Click\Elements\Definitions\ElementDefinition;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Eloquent\Collection;

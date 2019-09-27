@@ -26,7 +26,7 @@ class ElementValidationFailed extends Exception
 
         $failed = $validator->getMessageBag()->keys();
 
-        $type = $element->getElementDefinition()->getType();
+        $type = $element->getElementDefinition()->getClass();
         $properties = '"' . implode('", "', $failed) . '"';
 
         parent::__construct(sprintf('Element "%s" has failed validation on %s.', $type, $properties));

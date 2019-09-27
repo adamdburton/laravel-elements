@@ -1,20 +1,16 @@
 <?php
 
-namespace Click\Elements;
+namespace Click\Elements\Definitions;
 
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Models\Property;
+use Click\Elements\Schemas\PropertySchema;
 
 /**
  * Property definition container
  */
 class PropertyDefinition implements DefinitionContract
 {
-    /**
-     * @var array
-     */
-    protected $definition;
-
     /**
      * @var string
      */
@@ -30,9 +26,11 @@ class PropertyDefinition implements DefinitionContract
      */
     protected $validation = [];
 
-    public function __construct(array $definition)
+    public function __construct(array $schema)
     {
-        $this->definition = $definition;
+        $this->key = $schema['key'];
+        $this->type = $schema['type'];
+        $this->validation = $schema['validation'] ?? [];
     }
 
     /**
@@ -64,6 +62,6 @@ class PropertyDefinition implements DefinitionContract
      */
     public function install()
     {
-        return Property::create(collect($this->definition)->only('key', 'type')->all());
+        return Property::create(['key' => $this->getKey(), 'type' => $this->getType()]);
     }
 }

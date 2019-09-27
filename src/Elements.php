@@ -2,11 +2,12 @@
 
 namespace Click\Elements;
 
+use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementClassInvalidException;
 use Click\Elements\Exceptions\ElementTypeNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**

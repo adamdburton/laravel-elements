@@ -106,7 +106,10 @@ class Author extends Element
 {
     public function getDefinition(Schema $schema)  
     {  
-        $schema->string('name');
+        $schema->string('name')->required()->validation([
+            'min' => '3',
+            'exists:users,name'
+        ]);
     }
 }
 
@@ -114,9 +117,9 @@ class Book extends Element
 {
     public function getDefinition(Schema $schema)  
     {  
-        $schema->string('title');
-        $schema->integer('published');
-        $schema->relation('author');
+        $schema->string('title')->required();
+        $schema->integer('published')->required();
+        $schema->relation('author')->required();
     }
 }
 
@@ -124,7 +127,7 @@ class Book extends Element
 Creating new elements is much the same as Eloquent models, but assigning relationships is a little different.
 
 ```php
-<?
+<?php
 
 $author = Author::create([
     'name' => 'Neal Stephenson'

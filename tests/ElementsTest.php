@@ -3,6 +3,8 @@
 namespace Click\Elements\Tests;
 
 use Click\Elements\Exceptions\ElementTypeNotInstalledException;
+use Click\Elements\Exceptions\ElementValidationFailed;
+use Click\Elements\Exceptions\PropertyMissingException;
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\Assets\ValidationElement;
 
@@ -19,13 +21,24 @@ class ElementsTest extends TestCase
         PlainElement::create([]);
     }
 
+    public function test_set_invalid_property()
+    {
+        $elementType = $this->elements->register(ValidationElement::class)->install();
+
+        $this->expectException(ElementValidationFailed::class);
+
+        ValidationElement::create(['wef' => 'ewfw']);
+    }
+
 //    public function test_validation()
 //    {
-//        $elementType = $this->elements->register(ValidationElement::class)->install();
+//        $elementType = $this->elements->register(PlainElement::class)->install();
 //
-//        $this->expectException(ElementTypeNotInstalledException::class);
+//        $this->expectException(ElementValidationFailed::class);
 //
-//        ValidationElement::create([]);
+//        PlainElement::create([
+//            'string' => []
+//        ]);
 //    }
 //
 //    public function test_builder_where()

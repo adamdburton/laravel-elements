@@ -16,11 +16,11 @@ class ElementType extends Element
     public function getDefinition(ElementSchema $schema)
     {
         $schema->string('name')
-            ->description('')
+            ->description('The Element class name.')
             ->required();
 
         $schema->array('properties')
-            ->description('Holds the key to ID lookups for element properties.')
+            ->description('Holds data for element property lookups.')
             ->required();
     }
 }
