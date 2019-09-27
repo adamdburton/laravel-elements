@@ -12,10 +12,14 @@ use Illuminate\Support\Str;
  */
 trait HasTypedProperties
 {
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $attributes = [];
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $properties = [];
 
     /**
@@ -61,35 +65,6 @@ trait HasTypedProperties
 
     /**
      * @param string $key
-     * @param mixed $value
-     * @return mixed
-     */
-    protected function mutateAttribute($key, $value)
-    {
-        return $this->{'get' . Str::studly($key) . 'Attribute'}($value);
-    }
-
-    /**
-     * @param $key
-     * @return bool
-     */
-    public function hasSetter($key)
-    {
-        return method_exists($this, 'set' . Str::studly($key) . 'Attribute');
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     * @return mixed
-     */
-    protected function runSetter($key, $value)
-    {
-        return $this->{'set' . Str::studly($key) . 'Attribute'}($value);
-    }
-
-    /**
-     * @param string $key
      * @return mixed
      */
     public function getAttributeValue($key)
@@ -110,6 +85,16 @@ trait HasTypedProperties
     protected function getAttributeFromArray($key)
     {
         return $this->attributes[$key] ?? null;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function mutateAttribute($key, $value)
+    {
+        return $this->{'get' . Str::studly($key) . 'Attribute'}($value);
     }
 
     /**
@@ -139,11 +124,32 @@ trait HasTypedProperties
     }
 
     /**
-     * @return array
+     * @param $key
+     * @return bool
      */
-    public function getAttributes()
+    public function hasSetter($key)
     {
-        return $this->attributes;
+        return method_exists($this, 'set' . Str::studly($key) . 'Attribute');
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
+    protected function runSetter($key, $value)
+    {
+        return $this->{'set' . Str::studly($key) . 'Attribute'}($value);
+    }
+
+    /**
+     * @param PropertyDefinition $definition
+     * @param $value
+     * @return bool
+     */
+    protected function checkAttributeType(PropertyDefinition $definition, $value)
+    {
+        return PropertyType::validateValue($definition->getType(), $value);
     }
 
     /**
@@ -154,6 +160,14 @@ trait HasTypedProperties
         return collect($this->getAttributes())->map(function ($_, $key) {
             return $this->getAttribute($key);
         })->all();
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttributes()
+    {
+        return $this->attributes;
     }
 
     /**
@@ -175,15 +189,5 @@ trait HasTypedProperties
     public function setRawAttributes($attributes)
     {
         $this->attributes = $attributes;
-    }
-
-    /**
-     * @param PropertyDefinition $definition
-     * @param $value
-     * @return bool
-     */
-    protected function checkAttributeType(PropertyDefinition $definition, $value)
-    {
-        return PropertyType::validateValue($definition->getType(), $value);
     }
 }

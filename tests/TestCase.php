@@ -4,7 +4,6 @@ namespace Click\Elements\Tests;
 
 use Click\Elements\Elements;
 use Click\Elements\ElementsServiceProvider;
-use Click\Elements\Tests\Assets\PlainElement;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 /**
@@ -12,10 +11,14 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
  */
 abstract class TestCase extends BaseTestCase
 {
-    /** @var Elements */
+    /**
+     * @var Elements
+     */
     protected $elements;
 
-    /** @var bool */
+    /**
+     * @var bool
+     */
     protected $elementsInstalled = true;
 
     public function setUp(): void

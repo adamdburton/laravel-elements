@@ -10,13 +10,19 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class MakeElement extends GeneratorCommand
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $name = 'make:element';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $description = 'Create a new element class';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $type = 'Elements';
 
     protected function buildClass($name)

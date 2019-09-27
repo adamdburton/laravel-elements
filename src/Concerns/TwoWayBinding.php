@@ -22,9 +22,6 @@ trait TwoWayBinding
      */
     protected $syncFromModel = false;
 
-    /** @return string */
-    abstract public function getModel();
-
     /**
      * @param Element $element
      * @return array
@@ -42,4 +39,9 @@ trait TwoWayBinding
     {
         return $model->toArray();
     }
+
+    /**
+     * @return string
+     */
+    abstract public function getModel();
 }

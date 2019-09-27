@@ -9,10 +9,14 @@ use Illuminate\Support\MessageBag;
 
 class ElementValidationFailed extends Exception
 {
-    /** @var Element */
+    /**
+     * @var Element
+     */
     protected $element;
 
-    /** @var Validator */
+    /**
+     * @var Validator
+     */
     protected $validator;
 
     public function __construct(Element $element, Validator $validator)

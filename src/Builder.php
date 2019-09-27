@@ -5,6 +5,7 @@ namespace Click\Elements;
 use Click\Elements\Exceptions\ElementValidationFailed;
 use Click\Elements\Models\Entity;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Database\Eloquent\Builder as BaseBuilder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 
@@ -13,10 +14,14 @@ use Illuminate\Support\Facades\Validator;
  */
 class Builder
 {
-    /** @var Element */
+    /**
+     * @var Element
+     */
     protected $element;
 
-    /** @var \Illuminate\Database\Eloquent\Builder */
+    /**
+     * @var BaseBuilder
+     */
     protected $query;
 
     /**
@@ -64,24 +69,12 @@ class Builder
     }
 
     /**
-     * @param null $attributes
-     * @param null $id
-     * @return Element
-     * @throws BindingResolutionException
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     */
-    public function factory($attributes = null, $id = null)
-    {
-        return $this->element->getElementDefinition()->element($attributes, $id);
-    }
-
-    /**
      * @param array $attributes
-     * @return mixed
+     * @return Element
      * @throws BindingResolutionException
      * @throws ElementValidationFailed
      * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws Exceptions\PropertyMissingException
+     * @throws Exceptions\ElementTypeNotInstalledException
      */
     public function create(array $attributes)
     {
@@ -100,47 +93,6 @@ class Builder
         $element = $this->factory($attributes, $entity->id);
 
         return $element;
-    }
-
-    /**
-     * @param array $attributes
-     * @return Element
-     * @throws BindingResolutionException
-     * @throws ElementValidationFailed
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws Exceptions\PropertyMissingException
-     */
-    public function update(array $attributes)
-    {
-        $this->validate($attributes);
-
-        $attributes = array_merge($this->element->getAttributes(), $attributes);
-
-        $relations = $this->buildRelations(
-            $this->element->getPropertyModels(),
-            $attributes
-        );
-
-        /** @var Entity $entity */
-        $entity = Entity::find($this->element->getPrimaryKey());
-
-        $entity->properties()->sync($relations);
-
-        $element = $this->factory($attributes);
-
-        return $element;
-    }
-
-    /**
-     * @param array $properties [ Property({id: 1, name: eg1, type: int}), Property({id: 2, name: eg2, type: string}) ]
-     * @param array $attributes [ eg1 => 1, eg2 => hello ]
-     * @return array $relations [ 1 => [1 => [int_value => 1]], 2 => [string_value => hello] ]
-     */
-    protected function buildRelations(array $properties, array $attributes)
-    {
-        return collect($properties)->mapWithKeys(function ($property, $key) use ($attributes) {
-            return isset($attributes[$key]) ? [$property->id => [$property->typeColumn => $attributes[$key]]] : [];
-        })->filter()->all();
     }
 
     /**
@@ -171,5 +123,58 @@ class Builder
         $validator = Validator::make($attributes, $rules);
 
         return $validator;
+    }
+
+    /**
+     * @param array $properties [ Property({id: 1, name: eg1, type: int}), Property({id: 2, name: eg2, type: string}) ]
+     * @param array $attributes [ eg1 => 1, eg2 => hello ]
+     * @return array $relations [ 1 => [1 => [int_value => 1]], 2 => [string_value => hello] ]
+     */
+    protected function buildRelations(array $properties, array $attributes)
+    {
+        return collect($properties)->mapWithKeys(function ($property, $key) use ($attributes) {
+            return isset($attributes[$key]) ? [$property->id => [$property->typeColumn => $attributes[$key]]] : [];
+        })->filter()->all();
+    }
+
+    /**
+     * @param null $attributes
+     * @param null $id
+     * @return Element
+     * @throws BindingResolutionException
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     */
+    public function factory($attributes = null, $id = null)
+    {
+        return $this->element->getElementDefinition()->element($attributes, $id);
+    }
+
+    /**
+     * @param array $attributes
+     * @return Element
+     * @throws BindingResolutionException
+     * @throws ElementValidationFailed
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws Exceptions\ElementTypeNotInstalledException
+     */
+    public function update(array $attributes)
+    {
+        $this->validate($attributes);
+
+        $attributes = array_merge($this->element->getAttributes(), $attributes);
+
+        $relations = $this->buildRelations(
+            $this->element->getPropertyModels(),
+            $attributes
+        );
+
+        /** @var Entity $entity */
+        $entity = Entity::find($this->element->getPrimaryKey());
+
+        $entity->properties()->sync($relations);
+
+        $element = $this->factory($attributes);
+
+        return $element;
     }
 }

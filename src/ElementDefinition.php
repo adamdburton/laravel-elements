@@ -42,14 +42,6 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
-     * @return string
-     */
-    public function getClass()
-    {
-        return $this->elementClass;
-    }
-
-    /**
      * @param Element $element
      * @return void
      */
@@ -87,6 +79,14 @@ class ElementDefinition implements DefinitionContract
             'name' => $this->getClass(),
             'properties' => $propertyModels->pluck('id', 'key') // Key to ID lookup field
         ]);
+    }
+
+    /**
+     * @return string
+     */
+    public function getClass()
+    {
+        return $this->elementClass;
     }
 
     /**

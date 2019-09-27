@@ -20,13 +20,19 @@ abstract class Element implements ElementContract
     use HasTypedProperties;
     use ForwardsCalls;
 
-    /** @var int */
+    /**
+     * @var int
+     */
     public $primaryKey;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $typeName;
 
-    /** @var Builder */
+    /**
+     * @var Builder
+     */
     protected $query;
 
     /**
@@ -45,6 +51,17 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
+     * @throws Exceptions\PropertyMissingException
+     */
+    public static function __callStatic($method, $parameters)
+    {
+        return (new static())->$method(...$parameters);
+    }
+
+    /**
+     * @param $method
+     * @param $parameters
+     * @return mixed
      */
     public function __call($method, $parameters)
     {
@@ -56,22 +73,19 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @param $method
-     * @param $parameters
-     * @return mixed
-     * @throws Exceptions\PropertyMissingException
-     */
-    public static function __callStatic($method, $parameters)
-    {
-        return (new static())->$method(...$parameters);
-    }
-
-    /**
      * @return Builder
      */
     public function newQuery()
     {
         return new Builder($this);
+    }
+
+    /**
+     * @return int
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
     }
 
     /**
@@ -86,19 +100,14 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return int
+     * @return mixed
+     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws BindingResolutionException
+     * @throws Exceptions\ElementTypeNotInstalledException
      */
-    public function getPrimaryKey()
+    public function getPropertyModels()
     {
-        return $this->primaryKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getElementTypeName()
-    {
-        return $this->typeName ?: get_class($this);
+        return $this->getElementDefinition()->getPropertyModels();
     }
 
     /**
@@ -115,13 +124,11 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return mixed
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws BindingResolutionException
+     * @return string
      */
-    public function getPropertyModels()
+    public function getElementTypeName()
     {
-        return $this->getElementDefinition()->getPropertyModels();
+        return $this->typeName ?: get_class($this);
     }
 
     /**

@@ -10,16 +10,24 @@ use Click\Elements\Models\Property;
  */
 class PropertyDefinition implements DefinitionContract
 {
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $definition;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $key;
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $type;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     protected $validation = [];
 
     public function __construct(array $definition)

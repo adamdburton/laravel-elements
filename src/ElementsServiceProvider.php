@@ -8,9 +8,7 @@ use Click\Elements\Events\ModelSaved;
 use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
-use Click\Elements\Observers\ModelObserver;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 

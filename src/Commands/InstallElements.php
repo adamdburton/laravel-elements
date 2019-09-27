@@ -4,20 +4,25 @@ namespace Click\Elements\Commands;
 
 use Click\Elements\Elements;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * php artisan elements:install
  */
 class InstallElements extends Command
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $signature = 'elements:install';
 
-    /** @var string */
+    /**
+     * @var string
+     */
     protected $description = 'Installs elements and their properties into the database';
 
-    /** @var Elements */
+    /**
+     * @var Elements
+     */
     protected $elements;
 
     /**

@@ -11,10 +11,19 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Property extends Model
 {
-    protected $table = 'elements_properties';
-
+    /**
+     * @var bool
+     */
     public $timestamps = false;
 
+    /**
+     * @var string
+     */
+    protected $table = 'elements_properties';
+
+    /**
+     * @var array
+     */
     protected $fillable = ['key', 'type'];
 
     // Relationships
