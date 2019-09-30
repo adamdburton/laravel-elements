@@ -3,17 +3,17 @@
 namespace DummyNamespace;
 
 use Click\Elements\Element;
-use Click\Elements\Schema;
+use Click\Elements\Schemas\ElementSchema;
 
 class DummyClass extends Element
 {
     /**
      * Define the schema for the DummyClass element.
      *
-     * @param Schema $schema
+     * @param ElementSchema $schema
      * @return void
      */
-    public function getDefinition(Schema $schema)
+    public function getDefinition(ElementSchema $schema)
     {
         //$schema->string('title');
         //$schema->boolean('inStock');

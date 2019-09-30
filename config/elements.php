@@ -7,8 +7,9 @@ return [
     | Auto Install Elements
     |--------------------------------------------------------------------------
     |
-    | Change whether new and updated elements should be automatically installed
-    | to the database.
+    | Should new and updated elements be automatically installed? This will
+    | result in extra database queries on each request and should be turned
+    | OFF in production.
     |
     */
 

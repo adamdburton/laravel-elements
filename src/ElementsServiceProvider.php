@@ -5,6 +5,7 @@ namespace Click\Elements;
 use Click\Elements\Commands\InstallElements;
 use Click\Elements\Commands\MakeElement;
 use Click\Elements\Events\ModelSaved;
+use Click\Elements\Facades\Elements as ElementsFacade;
 use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
@@ -35,7 +36,7 @@ class ElementsServiceProvider extends ServiceProvider
         $this->bootObservers();
 
         if (config('elements.auto_install')) {
-            app(Elements::class)->install();
+            ElementsFacade::install();
         }
 
         if ($this->app->runningInConsole()) {

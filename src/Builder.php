@@ -146,7 +146,7 @@ class Builder
      */
     public function factory($attributes = null, $id = null)
     {
-        return $this->element->getElementDefinition()->element($attributes, $id);
+        return $this->element->getElementDefinition()->factory($attributes, $id);
     }
 
     /**

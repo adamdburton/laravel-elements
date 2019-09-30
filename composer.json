@@ -6,10 +6,10 @@
     {
       "name": "Click",
       "email": "developers@clickdigitalsolutions.co.uk",
-      "homepage": "https://github.com/clickops"
+      "homepage": "https://github.com/clickds"
     }
   ],
-  "homepage": "https://github.com/clickops/elements",
+  "homepage": "https://github.com/clickds/elements",
   "keywords": [
     "Laravel",
     "Elements"

@@ -7,6 +7,7 @@ use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementClassInvalidException;
 use Click\Elements\Exceptions\ElementTypeNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
+use Click\Elements\Schemas\ElementSchema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -56,7 +57,10 @@ class Elements
      */
     public function register(string $class)
     {
-        $definition = new ElementDefinition($class);
+        $element = new $class;
+        $element->getDefinition($schema = new ElementSchema());
+
+        $definition = new ElementDefinition($schema, $element);
 
         $this->elementDefinitions[$definition->getClass()] = $definition;
 
@@ -94,7 +98,7 @@ class Elements
      * @param $type
      * @throws ElementTypeNotRegisteredException
      */
-    protected function validateType($type)
+    public function validateType($type)
     {
         if (!isset($this->elementDefinitions[$type])) {
             throw new ElementTypeNotRegisteredException($type);
@@ -113,6 +117,14 @@ class Elements
         }
 
         return $this->elementDefinitions[$type];
+    }
+
+    /**
+     * @return ElementDefinition[]
+     */
+    public function getElementDefinitions()
+    {
+        return $this->elementDefinitions;
     }
 
     /**

@@ -16,9 +16,14 @@ use Illuminate\Support\Facades\Log;
 class ElementDefinition implements DefinitionContract
 {
     /**
-     * @var string
+     * @var ElementSchema
      */
-    protected $elementClass;
+    protected $schema;
+
+    /**
+     * @var Element
+     */
+    protected $element;
 
     /**
      * @var PropertyDefinition[]
@@ -35,22 +40,10 @@ class ElementDefinition implements DefinitionContract
      */
     private $installed = false;
 
-    public function __construct(string $class)
+    public function __construct(ElementSchema $schema, Element $element)
     {
-        $this->elementClass = $class;
-
-        $this->fromElement(new $class());
-    }
-
-    /**
-     * @param Element $element
-     * @return void
-     */
-    protected function fromElement(Element $element)
-    {
-        $element->getDefinition($schema = new ElementSchema());
-
-        $this->properties = collect($schema->getSchema())->mapInto(PropertyDefinition::class)->all();
+        $this->schema = $schema;
+        $this->element = $element;
     }
 
     /**
@@ -62,9 +55,11 @@ class ElementDefinition implements DefinitionContract
 
         // Install the properties required for the Element.
 
-        Log::debug('Creating property models for element.', ['properties' => implode(', ', array_keys($this->properties)), 'element' => $this->getClass()]);
+        $properties = $this->getProperties();
 
-        $propertyModels = collect($this->properties)->map(function (PropertyDefinition $property) {
+        Log::debug('Creating property models for element.', ['properties' => implode(', ', array_keys($properties)), 'element' => $this->getClass()]);
+
+        $propertyModels = collect($properties)->map(function (PropertyDefinition $property) {
             return $property->install();
         });
 
@@ -83,11 +78,23 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
+     * @return PropertyDefinition[]
+     */
+    public function getProperties()
+    {
+        if (!$this->properties) {
+            $this->properties = collect($this->schema->getSchema())->mapInto(PropertyDefinition::class)->all();
+        }
+
+        return $this->properties;
+    }
+
+    /**
      * @return string
      */
     public function getClass()
     {
-        return $this->elementClass;
+        return get_class($this->element);
     }
 
     /**
@@ -95,9 +102,9 @@ class ElementDefinition implements DefinitionContract
      * @param null $id
      * @return Element
      */
-    public function element($attributes = null, $id = null)
+    public function factory($attributes = null, $id = null)
     {
-        $class = $this->elementClass;
+        $class = $this->getClass();
 
         /** @var Element $element */
         $element = new $class($attributes);
@@ -148,5 +155,13 @@ class ElementDefinition implements DefinitionContract
     public function getPropertyModel($property)
     {
         return $this->propertyModels[$property];
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSlug()
+    {
+        return Str::camel($this->element->getElementTypeName());
     }
 }
