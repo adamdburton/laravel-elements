@@ -24,13 +24,27 @@ class PropertyDefinition implements DefinitionContract
     /**
      * @var array
      */
-    protected $validation = [];
+    protected $meta = [];
 
-    public function __construct(array $schema)
+    /**
+     * @var ElementDefinition
+     */
+    protected $elementDefinition;
+
+    /**
+     * @var PropertySchema
+     */
+    protected $schema;
+
+    /**
+     * @param ElementDefinition $definition
+     * @param PropertySchema $schema
+     */
+    public function __construct(ElementDefinition $definition, PropertySchema $schema)
     {
-        $this->key = $schema['key'];
-        $this->type = $schema['type'];
-        $this->validation = $schema['validation'] ?? [];
+        $this->elementDefinition = $definition;
+
+        $this->schema = $schema;
     }
 
     /**
@@ -38,7 +52,7 @@ class PropertyDefinition implements DefinitionContract
      */
     public function getKey()
     {
-        return $this->key;
+        return $this->schema->getKey();
     }
 
     /**
@@ -46,15 +60,27 @@ class PropertyDefinition implements DefinitionContract
      */
     public function getType()
     {
-        return $this->type;
+        return $this->schema->getType();
     }
 
     /**
      * @return array
      */
-    public function getValidation()
+    public function getMeta()
     {
-        return $this->validation;
+        return $this->schema->getMeta();
+    }
+
+    /**
+     * @return array
+     */
+    public function toJson()
+    {
+        return [
+            'key' => $this->getKey(),
+            'type' => $this->getType(),
+            'meta' => $this->getMeta()
+        ];
     }
 
     /**
@@ -62,6 +88,6 @@ class PropertyDefinition implements DefinitionContract
      */
     public function install()
     {
-        return Property::create(['key' => $this->getKey(), 'type' => $this->getType()]);
+        return Property::create(['element' => $this->elementDefinition->getAlias(), 'key' => $this->getKey(), 'type' => $this->getType()]);
     }
 }

@@ -5,9 +5,10 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Element;
 use Click\Elements\Elements\ElementType;
-use Click\Elements\Exceptions\ElementTypeNotInstalledException;
+use Click\Elements\Exceptions\ElementNotInstalledException;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\ElementSchema;
+use Click\Elements\Schemas\PropertySchema;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -40,10 +41,24 @@ class ElementDefinition implements DefinitionContract
      */
     private $installed = false;
 
-    public function __construct(ElementSchema $schema, Element $element)
+    /**
+     * @var bool
+     */
+    private $loaded = false;
+
+    /**
+     * @param Element $element
+     * @param ElementSchema $schema
+     * @param bool $load
+     */
+    public function __construct(Element $element, ElementSchema $schema, $load = true)
     {
-        $this->schema = $schema;
         $this->element = $element;
+        $this->schema = $schema;
+
+        if ($load) {
+            $this->load();
+        }
     }
 
     /**
@@ -73,7 +88,7 @@ class ElementDefinition implements DefinitionContract
 
         return ElementType::create([
             'name' => $this->getClass(),
-            'properties' => $propertyModels->pluck('id', 'key') // Key to ID lookup field
+            'alias' => $this->getAlias()
         ]);
     }
 
@@ -83,7 +98,7 @@ class ElementDefinition implements DefinitionContract
     public function getProperties()
     {
         if (!$this->properties) {
-            $this->properties = collect($this->schema->getSchema())->mapInto(PropertyDefinition::class)->all();
+            $this->properties = $this->buildPropertyDefinitions();
         }
 
         return $this->properties;
@@ -98,19 +113,27 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->element->getAlias();
+    }
+
+    /**
      * @param null $attributes
-     * @param null $id
+     * @param null $meta
      * @return Element
      */
-    public function factory($attributes = null, $id = null)
+    public function factory($attributes = null, $meta = null)
     {
         $class = $this->getClass();
 
         /** @var Element $element */
         $element = new $class($attributes);
 
-        if ($id) {
-            $element->setPrimaryKey($id);
+        if ($meta) {
+            $element->setMeta($meta);
         }
 
         return $element;
@@ -127,22 +150,36 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
+     * @return bool
+     */
+    public function isInstalled()
+    {
+        return $this->installed;
+    }
+
+    /**
      * @param $key
      * @return PropertyDefinition|null
      */
     public function getPropertyDefinition($key)
     {
-        return $this->properties[$key] ?? null;
+        $properties = $this->getProperties();
+
+        return $properties[$key] ?? null;
     }
 
     /**
      * @return array
-     * @throws ElementTypeNotInstalledException
+     * @throws ElementNotInstalledException
      */
     public function getPropertyModels()
     {
-        if (!$this->installed) {
-            throw new ElementTypeNotInstalledException($this->getClass());
+        if (!$this->loaded) {
+            $this->load();
+        }
+
+        if (!$this->isInstalled()) {
+            throw new ElementNotInstalledException($this->getClass());
         }
 
         return $this->propertyModels;
@@ -151,10 +188,13 @@ class ElementDefinition implements DefinitionContract
     /**
      * @param $property
      * @return Property|null
+     * @throws ElementNotInstalledException
      */
     public function getPropertyModel($property)
     {
-        return $this->propertyModels[$property];
+        $propertyModels = $this->getPropertyModels();
+
+        return $propertyModels[$property];
     }
 
     /**
@@ -162,6 +202,27 @@ class ElementDefinition implements DefinitionContract
      */
     public function getSlug()
     {
+        dd('remove me');
         return Str::camel($this->element->getElementTypeName());
+    }
+
+    protected function load()
+    {
+        $this->propertyModels = Property::where('element', $this->getAlias())->get()->keyBy('key')->all();
+
+        $this->loaded = true;
+        $this->installed = true;
+    }
+
+    /**
+     * @return array
+     */
+    protected function buildPropertyDefinitions()
+    {
+        return collect($this->schema->getSchema())
+            ->map(function ($schema) {
+                return new PropertyDefinition($this, $schema);
+            })
+            ->all();
     }
 }

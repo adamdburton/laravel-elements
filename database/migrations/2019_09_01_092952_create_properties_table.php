@@ -16,6 +16,7 @@ class CreatePropertiesTable extends Migration
     {
         Schema::create('elements_properties', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('element', 64)->index();
             $table->string('key', 64)->index();
             $table->enum('type', PropertyType::getTypes())->index();
         });

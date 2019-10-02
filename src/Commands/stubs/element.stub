@@ -3,6 +3,7 @@
 namespace DummyNamespace;
 
 use Click\Elements\Element;
+use Click\Elements\Exceptions\PropertyKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 
 class DummyClass extends Element
@@ -12,6 +13,7 @@ class DummyClass extends Element
      *
      * @param ElementSchema $schema
      * @return void
+     * @throws PropertyKeyInvalidException
      */
     public function getDefinition(ElementSchema $schema)
     {

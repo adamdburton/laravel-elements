@@ -4,7 +4,7 @@ namespace Click\Elements\Exceptions;
 
 use Exception;
 
-class ElementTypeNotRegisteredException extends Exception
+class ElementNotRegisteredException extends Exception
 {
     public function __construct($type)
     {

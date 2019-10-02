@@ -3,7 +3,7 @@
 namespace Click\Elements\Concerns;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\PropertyMissingException;
+use Click\Elements\Exceptions\PropertyNotRegisteredException;
 use Click\Elements\PropertyType;
 use Illuminate\Support\Str;
 
@@ -34,7 +34,7 @@ trait HasTypedProperties
     /**
      * @param $key
      * @param $value
-     * @throws PropertyMissingException
+     * @throws PropertyNotRegisteredException
      */
     public function __set($key, $value)
     {
@@ -101,7 +101,7 @@ trait HasTypedProperties
      * @param $key
      * @param $value
      * @return $this
-     * @throws PropertyMissingException
+     * @throws PropertyNotRegisteredException
      */
     public function setAttribute($key, $value)
     {
@@ -111,8 +111,7 @@ trait HasTypedProperties
             $property = $this->getElementDefinition()->getPropertyDefinition($key);
 
             if (!$property) {
-//            dd($key, $this->getElementDefinition());
-                throw new PropertyMissingException($key);
+                throw new PropertyNotRegisteredException($key);
             }
 
             $this->checkAttributeType($property, $value);

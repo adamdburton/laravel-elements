@@ -33,7 +33,6 @@
     ],
     "psr-4": {
       "Click\\Elements\\": "src/",
-      "Click\\Elements\\Database\\Seeds\\": "database/seeds/",
       "Click\\Elements\\Database\\Factories\\": "database/factories/"
     }
   },

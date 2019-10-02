@@ -24,7 +24,7 @@ class Property extends Model
     /**
      * @var array
      */
-    protected $fillable = ['key', 'type'];
+    protected $fillable = ['element', 'key', 'type'];
 
     // Relationships
 
@@ -38,12 +38,17 @@ class Property extends Model
 
     // Scopes
 
-    public function scopeKey($query, $property)
+    public function scopeElement($query, string $element)
+    {
+        $query->where('element', $element);
+    }
+
+    public function scopeKey($query, string $property)
     {
         $query->where('key', $property);
     }
 
-    public function scopeType($query, $type)
+    public function scopeType($query, string $type)
     {
         $query->where('type', $type);
     }

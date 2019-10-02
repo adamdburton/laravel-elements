@@ -2,12 +2,12 @@
 
 namespace Click\Elements;
 
+use Carbon\Carbon;
 use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
 use Click\Elements\Definitions\ElementDefinition;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
@@ -24,12 +24,27 @@ abstract class Element implements ElementContract
     /**
      * @var int
      */
-    public $primaryKey;
+    protected $primaryKey;
+
+    /**
+     * @var Carbon
+     */
+    protected $createdAt;
+
+    /**
+     * @var Carbon
+     */
+    protected $updatedAt;
 
     /**
      * @var string
      */
     protected $typeName;
+
+    /**
+     * @var string
+     */
+    protected $aliasName;
 
     /**
      * @var Builder
@@ -39,7 +54,7 @@ abstract class Element implements ElementContract
     /**
      * @param null $attributes
      * @param bool $raw
-     * @throws Exceptions\PropertyMissingException
+     * @throws Exceptions\PropertyNotRegisteredException
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -52,7 +67,7 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws Exceptions\PropertyMissingException
+     * @throws Exceptions\PropertyNotRegisteredException
      */
     public static function __callStatic($method, $parameters)
     {
@@ -63,11 +78,13 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
+     * @throws Exceptions\ElementNotInstalledException
+     * @throws Exceptions\ElementNotRegisteredException
      */
     public function __call($method, $parameters)
     {
         if (!$this->query) {
-            $this->query = $this->newQuery();
+            $this->query = $this->query();
         }
 
         return $this->forwardCallTo($this->query, $method, $parameters);
@@ -75,8 +92,10 @@ abstract class Element implements ElementContract
 
     /**
      * @return Builder
+     * @throws Exceptions\ElementNotInstalledException
+     * @throws Exceptions\ElementNotRegisteredException
      */
-    public function newQuery()
+    public function query()
     {
         return new Builder($this);
     }
@@ -90,38 +109,49 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @param int $primaryKey
+     * @return Carbon
+     */
+    public function getCreatedAt()
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function getUpdatedAt()
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @param array $meta
      * @return Element
      */
-    public function setPrimaryKey(int $primaryKey)
+    public function setMeta(array $meta)
     {
-        $this->primaryKey = $primaryKey;
+        if (isset($meta['id'])) {
+            $this->primaryKey = $meta['id'];
+        }
+
+        if (isset($meta['created_at'])) {
+            $this->createdAt = $meta['created_at'];
+        }
+
+        if (isset($meta['updated_at'])) {
+            $this->updatedAt = $meta['updated_at'];
+        }
 
         return $this;
     }
 
     /**
-     * @return mixed
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws BindingResolutionException
-     * @throws Exceptions\ElementTypeNotInstalledException
-     */
-    public function getPropertyModels()
-    {
-        return $this->getElementDefinition()->getPropertyModels();
-    }
-
-    /**
      * @return ElementDefinition
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws BindingResolutionException
+     * @throws Exceptions\ElementNotRegisteredException
      */
     public function getElementDefinition()
     {
-        /** @var Elements $elements */
-        $elements = app(Elements::class);
-
-        return $elements->getElementDefinition($this->getElementTypeName());
+        return elements()->getElementDefinition($this->getElementTypeName());
     }
 
     /**
@@ -133,9 +163,28 @@ abstract class Element implements ElementContract
     }
 
     /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->aliasName ?: Str::camel(class_basename($this));
+    }
+
+    /**
+     * @return array
+     */
+    public function getMeta()
+    {
+        return [
+            'id' => $this->primaryKey,
+            'created_at' => $this->createdAt,
+            'updated_at' => $this->updatedAt,
+        ];
+    }
+
+    /**
      * @return Validator
-     * @throws Exceptions\ElementTypeNotRegisteredException
-     * @throws BindingResolutionException
+     * @throws Exceptions\ElementNotRegisteredException
      */
     public function validate()
     {
@@ -143,10 +192,25 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return Collection
+     * @return Element[]
+     * @throws Exceptions\ElementNotInstalledException
+     * @throws Exceptions\ElementNotRegisteredException
      */
     public function all()
     {
-        return $this->newQuery()->get();
+        return $this->query()->get();
+    }
+
+    /**
+     * @return array
+     * @throws Exceptions\ElementNotRegisteredException
+     */
+    public function toJson()
+    {
+        return [
+            'meta' => $this->getMeta(),
+            'attributes' => $this->getAttributes(),
+            'properties' => collect($this->getElementDefinition()->getProperties())->map->toJson()
+        ];
     }
 }

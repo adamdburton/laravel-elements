@@ -19,8 +19,8 @@ class ElementType extends Element
             ->description('The Element class name.')
             ->required();
 
-        $schema->array('properties')
-            ->description('Holds data for element property lookups.')
+        $schema->string('alias')
+            ->description('A short alias for the element type.')
             ->required();
     }
 }

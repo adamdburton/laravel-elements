@@ -2,9 +2,9 @@
 
 namespace Click\Elements\Tests;
 
-use Click\Elements\Exceptions\ElementTypeNotInstalledException;
+use Click\Elements\Exceptions\ElementNotInstalledException;
 use Click\Elements\Exceptions\ElementValidationFailed;
-use Click\Elements\Exceptions\PropertyMissingException;
+use Click\Elements\Exceptions\PropertyNotRegisteredException;
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\Assets\ValidationElement;
 
@@ -16,7 +16,7 @@ class ElementsTest extends TestCase
     {
         $elementType = $this->elements->register(PlainElement::class);
 
-        $this->expectException(ElementTypeNotInstalledException::class);
+        $this->expectException(ElementNotInstalledException::class);
 
         PlainElement::create([]);
     }

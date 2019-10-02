@@ -19,7 +19,7 @@ class Query
 
     /**
      * @param Request $request
-     * @throws Exceptions\ElementTypeNotRegisteredException
+     * @throws Exceptions\ElementNotRegisteredException
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
      */
     public function fromRequest(Request $request)

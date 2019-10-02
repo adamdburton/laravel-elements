@@ -5,7 +5,7 @@ namespace Click\Elements;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementClassInvalidException;
-use Click\Elements\Exceptions\ElementTypeNotRegisteredException;
+use Click\Elements\Exceptions\ElementNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
 use Click\Elements\Schemas\ElementSchema;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +20,11 @@ class Elements
      * @var ElementDefinition[]
      */
     protected $elementDefinitions = [];
+
+    /**
+     * @var array
+     */
+    protected $elementAliases = [];
 
     /**
      * @throws TablesMissingException
@@ -60,9 +65,10 @@ class Elements
         $element = new $class;
         $element->getDefinition($schema = new ElementSchema());
 
-        $definition = new ElementDefinition($schema, $element);
+        $definition = new ElementDefinition($element, $schema, false);
 
         $this->elementDefinitions[$definition->getClass()] = $definition;
+        $this->elementAliases[$definition->getAlias()] = $definition->getClass();
 
         Log::debug('Registering element.', ['element' => $definition->getClass()]);
 
@@ -84,37 +90,52 @@ class Elements
     /**
      * @param $type
      * @param array $attributes
+     * @param array $meta
      * @return Element
-     * @throws ElementTypeNotRegisteredException
+     * @throws ElementNotRegisteredException
      */
-    public function factory($type, $attributes = [])
+    public function factory($type, $attributes = null, $meta = null)
     {
-        $this->validateType($type);
+        $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->factory($attributes);
+        return $this->getElementDefinition($type)->factory($attributes, $meta);
     }
 
     /**
      * @param $type
-     * @throws ElementTypeNotRegisteredException
+     * @throws ElementNotRegisteredException
      */
     public function validateType($type)
     {
         if (!isset($this->elementDefinitions[$type])) {
-            throw new ElementTypeNotRegisteredException($type);
+            throw new ElementNotRegisteredException($type);
         }
+    }
+
+    /**
+     * @param string $type
+     * @return string
+     * @throws ElementNotRegisteredException
+     */
+    public function resolveType(string $type)
+    {
+        if (isset($this->elementAliases[$type])) {
+            $type = $this->elementAliases[$type];
+        }
+
+        $this->validateType($type);
+
+        return $type;
     }
 
     /**
      * @param $type
      * @return ElementDefinition
-     * @throws ElementTypeNotRegisteredException
+     * @throws ElementNotRegisteredException
      */
     public function getElementDefinition(string $type)
     {
-        if (!isset($this->elementDefinitions[$type])) {
-            throw new ElementTypeNotRegisteredException($type);
-        }
+        $type = $this->resolveType($type);
 
         return $this->elementDefinitions[$type];
     }

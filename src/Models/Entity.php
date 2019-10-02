@@ -2,6 +2,9 @@
 
 namespace Click\Elements\Models;
 
+use Click\Elements\Element;
+use Click\Elements\Exceptions\ElementNotRegisteredException;
+use Click\Elements\Facades\Elements;
 use Click\Elements\Pivots\EntityProperty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -46,6 +49,18 @@ class Entity extends Model
 
     // Scopes
 
+    /**
+     * @param $query
+     * @param string $type
+     * @throws ElementNotRegisteredException
+     */
+    public function scopeType($query, string $type)
+    {dd('remove');
+        $type = elements()->resolveType($type);
+
+        $query->whereHasProperty('type', $type);
+    }
+
     public function scopeWhereHasProperty($query, Property $property, $operator = '', $value = null)
     {
         $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
@@ -68,6 +83,30 @@ class Entity extends Model
 
     // Methods
 
+    /**
+     * @param string $type
+     * @return Element
+     */
+    public function toElement(string $type)
+    {
+        $meta = [
+            'id' => $this->id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
+
+        $attributes = $this->properties->mapWithKeys(function ($property) {
+            $type = $property->typeColumn;
+            return [$property->key => $property->pivot->$type];
+        })->all();
+
+        return Elements::factory($type, $attributes, $meta);
+    }
+
+    /**
+     * @param string $property
+     * @return mixed
+     */
     public function getProperty(string $property)
     {
         return $this->properties->where('property', $property)->first();

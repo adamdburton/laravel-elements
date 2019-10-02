@@ -2,6 +2,7 @@
 
 namespace Click\Elements\Schemas;
 
+use Click\Elements\Exceptions\PropertyKeyInvalidException;
 use Click\Elements\PropertyType;
 use Click\Elements\Schema;
 
@@ -11,95 +12,121 @@ use Click\Elements\Schema;
 class ElementSchema extends Schema
 {
     /**
+     * @var PropertySchema[]
+     */
+    protected $schema = [];
+
+    public function __construct()
+    {
+        $this->add('type', PropertyType::STRING)->label('Element Type');
+    }
+
+    /**
+     * @param $key
+     * @param $type
+     * @return PropertySchema
+     * @throws PropertyKeyInvalidException
+     */
+    protected function add($key, $type)
+    {
+        return $this->schema[$key] = new PropertySchema($key, $type);
+    }
+
+    /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function boolean($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::BOOLEAN);
+        return $this->add($key, PropertyType::BOOLEAN);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function integer($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::INTEGER);
+        return $this->add($key, PropertyType::INTEGER);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function double($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::DOUBLE);
+        return $this->add($key, PropertyType::DOUBLE);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function string($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::STRING);
+        return $this->add($key, PropertyType::STRING);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function text($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::TEXT);
+        return $this->add($key, PropertyType::TEXT);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function array($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::ARRAY);
+        return $this->add($key, PropertyType::ARRAY);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function json($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::JSON);
+        return $this->add($key, PropertyType::JSON);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function relation($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::RELATION);
+        return $this->add($key, PropertyType::RELATION);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyKeyInvalidException
      */
     public function timestamp($key)
     {
-        return $this->schema[$key] = (new PropertySchema())->key($key)->type(PropertyType::TIMESTAMP);
+        return $this->add($key, PropertyType::TIMESTAMP);
     }
 
     /**
-     * @return array
+     * @return PropertySchema[]
      */
     public function getSchema()
     {
-        $properties = collect($this->schema)->map(function (PropertySchema $schema) {
-            return $schema->getSchema();
-        })->all();
-
-        return $properties;
+        return $this->schema;
     }
 }

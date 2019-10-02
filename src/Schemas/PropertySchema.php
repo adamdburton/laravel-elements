@@ -2,6 +2,7 @@
 
 namespace Click\Elements\Schemas;
 
+use Click\Elements\Exceptions\PropertyKeyInvalidException;
 use Click\Elements\Schema;
 
 /**
@@ -10,57 +11,67 @@ use Click\Elements\Schema;
 class PropertySchema extends Schema
 {
     /**
-     * @param $key
-     * @return PropertySchema
+     * @var string
      */
-    public function key($key)
+    protected $key;
+
+    /**
+     * @var string
+     */
+    protected $type;
+
+    /**
+     * @var array
+     */
+    protected $meta = [];
+
+    /**
+     * @param string $key
+     * @param string $type
+     * @throws PropertyKeyInvalidException
+     */
+    public function __construct(string $key, string $type)
     {
-        $this->schema['key'] = $key;
+        $this->validateKey($key);
+
+        $this->key = $key;
+        $this->type = $type;
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     * @return Schema
+     */
+    public function __call($name, $arguments)
+    {
+        $this->meta[$name] = count($arguments) > 1 ? $arguments : ($arguments[0] ?? true);
 
         return $this;
     }
 
     /**
-     * @param $type
-     * @return PropertySchema
+     * @return string
      */
-    public function type($type)
+    public function getKey()
     {
-        $this->schema['type'] = $type;
-
-        return $this;
+        return $this->key;
     }
 
     /**
-     * @return PropertySchema
+     * @return string
      */
-    public function required()
+    public function getType()
     {
-        $this->schema['required'] = true;
-
-        return $this;
+        return $this->type;
     }
 
     /**
-     * @param $label
-     * @return PropertySchema
+     * @return array
      */
-    public function label($label)
+    public function getMeta()
     {
-        $this->schema['label'] = $label;
-
-        return $this;
-    }
-
-    /**
-     * @param array $rules
-     * @return PropertySchema
-     */
-    public function validation(array $rules)
-    {
-        $this->schema['validation'] = $rules;
-
-        return $this;
+        return $this->meta;
     }
 
     /**
@@ -68,19 +79,6 @@ class PropertySchema extends Schema
      */
     public function getSchema()
     {
-        // Move the required field to validation
-
-        if (isset($this->schema['required'])) {
-            $validation = $this->schema['validation'] ?? [];
-
-            if (!in_array('required', $validation)) {
-                $validation[] = 'required';
-            }
-
-            unset($this->schema['required']);
-            $this->schema['validation'] = $validation;
-        }
-
         return $this->schema;
     }
 }

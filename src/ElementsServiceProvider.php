@@ -3,6 +3,7 @@
 namespace Click\Elements;
 
 use Click\Elements\Commands\InstallElements;
+use Click\Elements\Commands\ListElements;
 use Click\Elements\Commands\MakeElement;
 use Click\Elements\Events\ModelSaved;
 use Click\Elements\Facades\Elements as ElementsFacade;
@@ -79,6 +80,7 @@ class ElementsServiceProvider extends ServiceProvider
 
         $this->commands([
             InstallElements::class,
+            ListElements::class,
             MakeElement::class
         ]);
     }
