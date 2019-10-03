@@ -4,7 +4,7 @@ namespace Click\Elements\Schemas;
 
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Exceptions\Property\RelationTypeInvalidException;
-use Click\Elements\Exceptions\SchemaPropertyAlreadyDefined;
+use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
 use Click\Elements\Schema;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
@@ -33,7 +33,7 @@ class ElementSchema extends Schema
     protected function add($key, $type)
     {
         if (isset($this->schema[$key])) {
-            throw new SchemaPropertyAlreadyDefined($key, $this);
+            throw new PropertyAlreadyDefinedException($key, $this);
         }
 
         return $this->schema[$key] = new PropertySchema($key, $type);

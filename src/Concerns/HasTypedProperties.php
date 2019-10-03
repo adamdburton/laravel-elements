@@ -149,16 +149,6 @@ trait HasTypedProperties
     /**
      * @return array
      */
-    public function toArray()
-    {
-        return collect($this->getAttributes())->keys()->map(function ($key) {
-            return $this->getAttribute($key);
-        })->all();
-    }
-
-    /**
-     * @return array
-     */
     public function getAttributes()
     {
         return $this->attributes;

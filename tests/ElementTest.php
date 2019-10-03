@@ -1,6 +1,6 @@
 <?php
 
-namespace Click\Elements\Tests\Services;
+namespace Click\Elements\Tests;
 
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\TestCase;

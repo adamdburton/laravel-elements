@@ -59,9 +59,13 @@ class Elements
     /**
      * @param string $class
      * @return ElementDefinition
+     * @throws ElementClassInvalidException
+     * @throws Exceptions\Property\PropertyKeyInvalidException
      */
     public function register(string $class)
     {
+        $this->validateClass($class);
+
         $element = new $class;
         $element->getDefinition($schema = new ElementSchema());
 

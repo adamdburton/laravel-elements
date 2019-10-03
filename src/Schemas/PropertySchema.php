@@ -51,34 +51,14 @@ class PropertySchema extends Schema
     }
 
     /**
-     * @return string
-     */
-    public function getKey()
-    {
-        return $this->key;
-    }
-
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * @return array
-     */
-    public function getMeta()
-    {
-        return $this->meta;
-    }
-
-    /**
      * @return array
      */
     public function getSchema()
     {
-        return $this->schema;
+        return [
+            'key' => $this->key,
+            'type' => $this->type,
+            'meta' => $this->meta
+        ];
     }
 }

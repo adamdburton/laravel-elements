@@ -72,7 +72,7 @@ class PropertyDefinition implements DefinitionContract
      */
     public function getKey()
     {
-        return $this->schema->getKey();
+        return $this->schema->getSchema()['key'];
     }
 
     /**
@@ -80,7 +80,7 @@ class PropertyDefinition implements DefinitionContract
      */
     public function getType()
     {
-        return $this->schema->getType();
+        return $this->schema->getSchema()['type'];
     }
 
     /**
@@ -90,7 +90,7 @@ class PropertyDefinition implements DefinitionContract
      */
     public function getMeta($key = null, $default = null)
     {
-        $meta = $this->schema->getMeta();
+        $meta = $this->schema->getSchema()['meta'];
 
         return $key ? ($meta[$key] ?? $default) : $meta;
     }

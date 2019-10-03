@@ -26,9 +26,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->elements = app(Elements::class);
-
-        $this->withFactories(__DIR__ . '/../database/factories');
-
+        
         $this->artisan('migrate:fresh', [
             '--database' => 'testbench',
             '--realpath' => realpath(__DIR__ . '/../database/migrations'),
