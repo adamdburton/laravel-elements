@@ -9,7 +9,7 @@ class SchemaPropertyAlreadyDefined extends Exception
 {
     public function __construct($key, ElementDefinition $elementType)
     {
-        $type = $elementType->getType();
+        $type = $elementType->getAlias();
 
         parent::__construct(sprintf('The key "%s" has already been defined for element type "%s".', $key, $type));
     }

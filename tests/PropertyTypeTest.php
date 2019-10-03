@@ -2,15 +2,15 @@
 
 namespace Click\Elements\Tests\Services;
 
-use Click\Elements\PropertyType;
 use Click\Elements\Tests\TestCase;
+use Click\Elements\Types\PropertyType;
 
 class PropertyTypeTest extends TestCase
 {
     public function test_is_valid_type()
     {
-        $this->assertTrue(PropertyType::isValidType('string'));
-        $this->assertFalse(PropertyType::isValidType('something'));
+        $this->assertTrue(in_array('string', PropertyType::getTypes()));
+        $this->assertFalse(in_array('something', PropertyType::getTypes()));
     }
 
     public function test_get_types()

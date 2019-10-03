@@ -3,7 +3,7 @@
 namespace Click\Elements\Models;
 
 use Click\Elements\Pivots\EntityProperty;
-use Click\Elements\PropertyType;
+use Click\Elements\Types\PropertyType;
 use Illuminate\Database\Eloquent\Model;
 
 /**

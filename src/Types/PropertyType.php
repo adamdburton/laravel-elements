@@ -1,14 +1,15 @@
 <?php
 
-namespace Click\Elements;
+namespace Click\Elements\Types;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\InvalidPropertyValueException;
+use Click\Elements\Exceptions\PropertyValueInvalidException;
+use Click\Elements\Type;
 
 /**
  * Defines the available property types for elements.
  */
-class PropertyType
+class PropertyType extends Type
 {
     public const BOOLEAN = 'boolean';
     public const INTEGER = 'integer';
@@ -19,15 +20,6 @@ class PropertyType
     public const JSON = 'json';
     public const RELATION = 'relation';
     public const TIMESTAMP = 'timestamp';
-
-    /**
-     * @param $type
-     * @return bool
-     */
-    public static function isValidType($type)
-    {
-        return in_array($type, self::getTypes());
-    }
 
     /**
      * @return array
@@ -48,15 +40,14 @@ class PropertyType
     }
 
     /**
-     * @param PropertyDefinition $definition
+     * @param string $key
+     * @param string $type
      * @param $value
-     * @return void
-     * @throws InvalidPropertyValueException
+     * @return mixed
+     * @throws PropertyValueInvalidException
      */
-    public static function validateValue(PropertyDefinition $definition, $value)
+    public static function validateValue(string $key, string $type, $value)
     {
-        $type = $definition->getType();
-
         switch ($type) {
             case PropertyType::JSON:
                 $type = PropertyType::ARRAY;
@@ -66,8 +57,7 @@ class PropertyType
         }
 
         if (gettype($value) !== $type) {
-            dd(gettype($value), $type);
-            throw new InvalidPropertyValueException($definition, $value);
+            throw new PropertyValueInvalidException($key, $type, $value);
         }
     }
 }

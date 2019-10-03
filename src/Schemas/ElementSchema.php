@@ -3,8 +3,11 @@
 namespace Click\Elements\Schemas;
 
 use Click\Elements\Exceptions\PropertyKeyInvalidException;
-use Click\Elements\PropertyType;
+use Click\Elements\Exceptions\RelationTypeInvalidException;
+use Click\Elements\Exceptions\SchemaPropertyAlreadyDefined;
 use Click\Elements\Schema;
+use Click\Elements\Types\PropertyType;
+use Click\Elements\Types\RelationType;
 
 /**
  * Class ElementSchema
@@ -29,6 +32,10 @@ class ElementSchema extends Schema
      */
     protected function add($key, $type)
     {
+        if (isset($this->schema[$key])) {
+            throw new SchemaPropertyAlreadyDefined($key, $this);
+        }
+
         return $this->schema[$key] = new PropertySchema($key, $type);
     }
 
@@ -104,12 +111,24 @@ class ElementSchema extends Schema
 
     /**
      * @param $key
+     * @param string $elementAlias
+     * @param string $relationType
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
+     * @throws RelationTypeInvalidException
      */
-    public function relation($key)
+    public function relation($key, string $elementAlias, string $relationType)
     {
-        return $this->add($key, PropertyType::RELATION);
+        RelationType::validateValue($key, $relationType, $relationType);
+
+        return $this->add($key, PropertyType::RELATION)
+            ->relationElement($elementAlias)
+            ->relationType($relationType);
+    }
+
+    public function belongsTo($key, string $elementAlias)
+    {
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
     }
 
     /**

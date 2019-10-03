@@ -3,9 +3,9 @@
 namespace Click\Elements\Concerns;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\InvalidPropertyValueException;
+use Click\Elements\Exceptions\PropertyValueInvalidException;
 use Click\Elements\Exceptions\PropertyNotRegisteredException;
-use Click\Elements\PropertyType;
+use Click\Elements\Types\PropertyType;
 use Illuminate\Support\Str;
 
 /**
@@ -36,7 +36,7 @@ trait HasTypedProperties
      * @param $key
      * @param $value
      * @throws PropertyNotRegisteredException
-     * @throws InvalidPropertyValueException
+     * @throws PropertyValueInvalidException
      */
     public function __set($key, $value)
     {
@@ -104,7 +104,7 @@ trait HasTypedProperties
      * @param $value
      * @return $this
      * @throws PropertyNotRegisteredException
-     * @throws InvalidPropertyValueException
+     * @throws PropertyValueInvalidException
      * @thr«ows PropertyNotRegisteredException
      */
     public function setAttribute($key, $value)
@@ -119,7 +119,7 @@ trait HasTypedProperties
                 throw new PropertyNotRegisteredException($key);
             }
 
-            PropertyType::validateValue($property, $value);
+            PropertyType::validateValue($property->getKey(), $property->getType(), $value);
 
             $this->attributes[$key] = $value;
         }
@@ -168,7 +168,7 @@ trait HasTypedProperties
      * @param $attributes
      * @return $this
      * @throws PropertyNotRegisteredException
-     * @throws InvalidPropertyValueException
+     * @throws PropertyValueInvalidException
      */
     public function setAttributes($attributes)
     {

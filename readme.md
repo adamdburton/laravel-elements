@@ -47,8 +47,9 @@ A fresh element class will be dropped somewhere like `app\Elements\MyElement.php
   
 namespace App\Elements;  
   
-use Click\Elements\Element;  
-use Click\Elements\Schema;  
+use Click\Elements\Element;
+use Click\Elements\Exceptions\PropertyKeyInvalidException;
+use Click\Elements\Schemas\ElementSchema;
   
 class MyElement extends Element  
 {  
@@ -58,7 +59,7 @@ class MyElement extends Element
      * @param Schema $schema  
      * @return void  
      */  
-    public function getDefinition(Schema $schema)  
+    public function getDefinition(ElementSchema $schema)  
     {  
         //$schema->string('title');  
         //$schema->boolean('inStock');  
@@ -104,9 +105,9 @@ Elements try to replicate the functionality of Eloquent models where possible to
 
 class Author extends Element
 {
-    public function getDefinition(Schema $schema)  
+    public function getDefinition(ElementSchema $schema)  
     {  
-        $schema->string('name')->required()->validation([
+        $schema->string('name')->validation([
             'min' => '3',
             'exists:users,name'
         ]);
@@ -115,11 +116,11 @@ class Author extends Element
 
 class Book extends Element
 {
-    public function getDefinition(Schema $schema)  
+    public function getDefinition(ElementSchema $schema)  
     {  
-        $schema->string('title')->required();
-        $schema->integer('published')->required();
-        $schema->relation('author')->required();
+        $schema->string('title')->validation('required');
+        $schema->integer('published')->validation('required');
+        $schema->relation('author')->validation('required');
     }
 }
 

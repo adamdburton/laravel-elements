@@ -4,6 +4,7 @@ namespace Click\Elements\Tests\Assets;
 
 use Click\Elements\Element;
 use Click\Elements\Schemas\ElementSchema;
+use Click\Elements\Types\RelationType;
 
 class PlainElement extends Element
 {
@@ -16,7 +17,7 @@ class PlainElement extends Element
         $schema->text('text');
         $schema->array('array');
         $schema->json('json');
-        $schema->relation('relation');
+        $schema->relation('relation', 'test', RelationType::BELONGS_TO);
         $schema->timestamp('timestamp');
     }
 }

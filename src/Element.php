@@ -57,7 +57,7 @@ abstract class Element implements ElementContract
      * @param null $attributes
      * @param bool $raw
      * @throws Exceptions\PropertyNotRegisteredException
-     * @throws Exceptions\InvalidPropertyValueException
+     * @throws Exceptions\PropertyValueInvalidException
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -71,7 +71,7 @@ abstract class Element implements ElementContract
      * @param $parameters
      * @return mixed
      * @throws Exceptions\PropertyNotRegisteredException
-     * @throws Exceptions\InvalidPropertyValueException
+     * @throws Exceptions\PropertyValueInvalidException
      */
     public static function __callStatic($method, $parameters)
     {
