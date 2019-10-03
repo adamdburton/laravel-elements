@@ -34,7 +34,6 @@ class ElementTest extends TestCase
             'integer' => 123456789,
             'array' => ['some', 'array', 'data'],
         ]);
-
         $element = $element->update([
             'string' => $string = 'some new string',
             'integer' => $integer = 987654321,

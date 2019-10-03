@@ -4,7 +4,6 @@ namespace Click\Elements\Models;
 
 use Click\Elements\Element;
 use Click\Elements\Exceptions\ElementNotRegisteredException;
-use Click\Elements\Facades\Elements;
 use Click\Elements\Pivots\EntityProperty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -89,18 +88,18 @@ class Entity extends Model
      */
     public function toElement(string $type)
     {
+        $attributes = $this->properties->mapWithKeys(function ($property) {
+            $type = $property->typeColumn;
+            return [$property->key => $property->pivot->$type];
+        })->all();
+
         $meta = [
             'id' => $this->id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
 
-        $attributes = $this->properties->mapWithKeys(function ($property) {
-            $type = $property->typeColumn;
-            return [$property->key => $property->pivot->$type];
-        })->all();
-
-        return Elements::factory($type, $attributes, $meta);
+        return elements()->factory($type, $attributes, $meta);
     }
 
     /**

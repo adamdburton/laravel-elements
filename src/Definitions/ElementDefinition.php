@@ -6,9 +6,9 @@ use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Element;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\ElementNotInstalledException;
+use Click\Elements\Exceptions\PropertyNotInstalledException;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\ElementSchema;
-use Click\Elements\Schemas\PropertySchema;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -87,8 +87,8 @@ class ElementDefinition implements DefinitionContract
         Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
 
         return ElementType::create([
-            'name' => $this->getClass(),
-            'alias' => $this->getAlias()
+            'class' => $this->getClass(),
+            'type' => $this->getAlias()
         ]);
     }
 
@@ -145,7 +145,7 @@ class ElementDefinition implements DefinitionContract
     public function getValidationRules()
     {
         return collect($this->properties)->map(function (PropertyDefinition $property) {
-            return $property->getValidation();
+            return $property->getMeta('validation', null);
         })->filter()->all();
     }
 
@@ -189,29 +189,30 @@ class ElementDefinition implements DefinitionContract
      * @param $property
      * @return Property|null
      * @throws ElementNotInstalledException
+     * @throws PropertyNotInstalledException
      */
     public function getPropertyModel($property)
     {
         $propertyModels = $this->getPropertyModels();
 
+        if (!isset($propertyModels[$property])) {
+            throw new PropertyNotInstalledException($property);
+        }
+
         return $propertyModels[$property];
     }
 
     /**
-     * @return mixed
+     * Loads the proeprty models from the database.
      */
-    public function getSlug()
-    {
-        dd('remove me');
-        return Str::camel($this->element->getElementTypeName());
-    }
-
     protected function load()
     {
-        $this->propertyModels = Property::where('element', $this->getAlias())->get()->keyBy('key')->all();
+        if (!$this->loaded) {
+            $this->propertyModels = Property::where('element', $this->getAlias())->get()->keyBy('key')->all();
 
-        $this->loaded = true;
-        $this->installed = true;
+            $this->loaded = true;
+            $this->installed = true;
+        }
     }
 
     /**

@@ -13,7 +13,18 @@ class EntityProperty extends Pivot
 
     protected $table = 'elements_entity_properties';
 
-    protected $casts = ['json_value' => 'array'];
+    protected $dates = [
+        'timestamp_value'
+    ];
+
+    protected $casts = [
+        'boolean_value' => 'boolean',
+        'integer_value' => 'integer',
+        'double_value' => 'double',
+        'string_value' => 'string',
+        'text_value' => 'string',
+        'json_value' => 'array'
+    ];
 
     // Relationships
 

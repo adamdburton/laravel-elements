@@ -2,6 +2,9 @@
 
 namespace Click\Elements;
 
+use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Exceptions\InvalidPropertyValueException;
+
 /**
  * Defines the available property types for elements.
  */
@@ -45,20 +48,26 @@ class PropertyType
     }
 
     /**
-     * @param $type
+     * @param PropertyDefinition $definition
      * @param $value
-     * @return bool
+     * @return void
+     * @throws InvalidPropertyValueException
      */
-    public static function validateValue($type, $value)
+    public static function validateValue(PropertyDefinition $definition, $value)
     {
+        $type = $definition->getType();
+
         switch ($type) {
-            case PropertyType::ARRAY:
-                $type = PropertyType::JSON;
+            case PropertyType::JSON:
+                $type = PropertyType::ARRAY;
                 break;
             case PropertyType::RELATION:
                 $type = PropertyType::INTEGER;
         }
 
-        return gettype($value) === $type;
+        if (gettype($value) !== $type) {
+            dd(gettype($value), $type);
+            throw new InvalidPropertyValueException($definition, $value);
+        }
     }
 }

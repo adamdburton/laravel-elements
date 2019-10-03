@@ -15,6 +15,8 @@ use Illuminate\Support\Traits\ForwardsCalls;
  *
  * @method static Element create(array $attributes)
  * @method static Element update(array $attributes)
+ * @see Builder::create()
+ * @see Builder::update()
  */
 abstract class Element implements ElementContract
 {
@@ -55,6 +57,7 @@ abstract class Element implements ElementContract
      * @param null $attributes
      * @param bool $raw
      * @throws Exceptions\PropertyNotRegisteredException
+     * @throws Exceptions\InvalidPropertyValueException
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -68,6 +71,7 @@ abstract class Element implements ElementContract
      * @param $parameters
      * @return mixed
      * @throws Exceptions\PropertyNotRegisteredException
+     * @throws Exceptions\InvalidPropertyValueException
      */
     public static function __callStatic($method, $parameters)
     {

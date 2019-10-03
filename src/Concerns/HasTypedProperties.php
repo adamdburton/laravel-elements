@@ -3,6 +3,7 @@
 namespace Click\Elements\Concerns;
 
 use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Exceptions\InvalidPropertyValueException;
 use Click\Elements\Exceptions\PropertyNotRegisteredException;
 use Click\Elements\PropertyType;
 use Illuminate\Support\Str;
@@ -35,6 +36,7 @@ trait HasTypedProperties
      * @param $key
      * @param $value
      * @throws PropertyNotRegisteredException
+     * @throws InvalidPropertyValueException
      */
     public function __set($key, $value)
     {
@@ -102,19 +104,22 @@ trait HasTypedProperties
      * @param $value
      * @return $this
      * @throws PropertyNotRegisteredException
+     * @throws InvalidPropertyValueException
+     * @thr«ows PropertyNotRegisteredException
      */
     public function setAttribute($key, $value)
     {
         if ($this->hasSetter($key)) {
             $this->runSetter($key, $value);
         } else {
+            /** @var PropertyDefinition $property */
             $property = $this->getElementDefinition()->getPropertyDefinition($key);
 
             if (!$property) {
                 throw new PropertyNotRegisteredException($key);
             }
 
-            $this->checkAttributeType($property, $value);
+            PropertyType::validateValue($property, $value);
 
             $this->attributes[$key] = $value;
         }
@@ -142,21 +147,11 @@ trait HasTypedProperties
     }
 
     /**
-     * @param PropertyDefinition $definition
-     * @param $value
-     * @return bool
-     */
-    protected function checkAttributeType(PropertyDefinition $definition, $value)
-    {
-        return PropertyType::validateValue($definition->getType(), $value);
-    }
-
-    /**
      * @return array
      */
     public function toArray()
     {
-        return collect($this->getAttributes())->map(function ($_, $key) {
+        return collect($this->getAttributes())->keys()->map(function ($key) {
             return $this->getAttribute($key);
         })->all();
     }
@@ -172,6 +167,8 @@ trait HasTypedProperties
     /**
      * @param $attributes
      * @return $this
+     * @throws PropertyNotRegisteredException
+     * @throws InvalidPropertyValueException
      */
     public function setAttributes($attributes)
     {

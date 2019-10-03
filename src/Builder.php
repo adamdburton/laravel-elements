@@ -3,7 +3,9 @@
 namespace Click\Elements;
 
 use Click\Elements\Contracts\ElementContract;
+use Click\Elements\Exceptions\ElementNotInstalledException;
 use Click\Elements\Exceptions\ElementValidationFailed;
+use Click\Elements\Exceptions\PropertyNotInstalledException;
 use Click\Elements\Models\Entity;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder as BaseBuilder;
@@ -52,7 +54,11 @@ class Builder
      */
     public function where($property, $operator = '', $value = null)
     {
-        $property = $this->element->getElementDefinition()->getPropertyModel($property);
+        try {
+            $property = $this->element->getElementDefinition()->getPropertyModel($property);
+        } catch (PropertyNotInstalledException $e) {
+            throw new ElementNotInstalledException($this->element->getAlias());
+        }
 
         $this->query->whereHasProperty($property, $operator, $value);
 
@@ -107,9 +113,7 @@ class Builder
 
         $entity->properties()->sync($relations);
 
-        $element = $this->factory($attributes, $entity->meta);
-
-        return $element;
+        return $entity->toElement($this->element->getAlias());
     }
 
     /**
@@ -153,20 +157,8 @@ class Builder
     }
 
     /**
-     * @param null $attributes
-     * @param null $id
-     * @return Element
-     * @throws Exceptions\ElementNotRegisteredException
-     */
-    public function factory($attributes = null, $id = null)
-    {
-        return $this->element->getElementDefinition()->factory($attributes, $id);
-    }
-
-    /**
      * @param array $attributes
      * @return Element
-     * @throws BindingResolutionException
      * @throws ElementValidationFailed
      * @throws Exceptions\ElementNotRegisteredException
      * @throws Exceptions\ElementNotInstalledException
@@ -187,9 +179,7 @@ class Builder
 
         $entity->properties()->sync($relations);
 
-        $element = $this->factory($attributes, $entity->meta);
-
-        return $element;
+        return $entity->toElement($this->element->getAlias());
     }
 
     /**

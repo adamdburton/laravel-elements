@@ -27,7 +27,7 @@ class ElementsTest extends TestCase
 
         $this->expectException(ElementValidationFailed::class);
 
-        ValidationElement::create(['wef' => 'ewfw']);
+        ValidationElement::create(['string' => 'ewfw']);
     }
 
 //    public function test_validation()

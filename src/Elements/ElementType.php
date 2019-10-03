@@ -3,6 +3,7 @@
 namespace Click\Elements\Elements;
 
 use Click\Elements\Element;
+use Click\Elements\Exceptions\PropertyKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 
 /**
@@ -12,15 +13,13 @@ class ElementType extends Element
 {
     /**
      * @param ElementSchema $schema
+     * @throws PropertyKeyInvalidException
      */
     public function getDefinition(ElementSchema $schema)
     {
-        $schema->string('name')
+        $schema->string('class')
+            ->label('Class')
             ->description('The Element class name.')
-            ->required();
-
-        $schema->string('alias')
-            ->description('A short alias for the element type.')
             ->required();
     }
 }

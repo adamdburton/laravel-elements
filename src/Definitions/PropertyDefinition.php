@@ -64,11 +64,23 @@ class PropertyDefinition implements DefinitionContract
     }
 
     /**
+     * @return ElementDefinition
+     */
+    public function getElementDefinition()
+    {
+        return $this->elementDefinition;
+    }
+
+    /**
+     * @param null $key
+     * @param null $default
      * @return array
      */
-    public function getMeta()
+    public function getMeta($key = null, $default = null)
     {
-        return $this->schema->getMeta();
+        $meta = $this->schema->getMeta();
+
+        return $key ? ($meta[$key] ?? $default) : $meta;
     }
 
     /**
