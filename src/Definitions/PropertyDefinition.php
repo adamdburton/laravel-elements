@@ -48,6 +48,26 @@ class PropertyDefinition implements DefinitionContract
     }
 
     /**
+     * @return ElementDefinition
+     */
+    public function getElementDefinition()
+    {
+        return $this->elementDefinition;
+    }
+
+    /**
+     * @return array
+     */
+    public function toJson()
+    {
+        return [
+            'key' => $this->getKey(),
+            'type' => $this->getType(),
+            'meta' => $this->getMeta()
+        ];
+    }
+
+    /**
      * @return string
      */
     public function getKey()
@@ -64,14 +84,6 @@ class PropertyDefinition implements DefinitionContract
     }
 
     /**
-     * @return ElementDefinition
-     */
-    public function getElementDefinition()
-    {
-        return $this->elementDefinition;
-    }
-
-    /**
      * @param null $key
      * @param null $default
      * @return array
@@ -81,18 +93,6 @@ class PropertyDefinition implements DefinitionContract
         $meta = $this->schema->getMeta();
 
         return $key ? ($meta[$key] ?? $default) : $meta;
-    }
-
-    /**
-     * @return array
-     */
-    public function toJson()
-    {
-        return [
-            'key' => $this->getKey(),
-            'type' => $this->getType(),
-            'meta' => $this->getMeta()
-        ];
     }
 
     /**

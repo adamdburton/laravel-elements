@@ -3,7 +3,8 @@
 namespace Click\Elements\Models;
 
 use Click\Elements\Element;
-use Click\Elements\Exceptions\ElementNotRegisteredException;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
+use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Pivots\EntityProperty;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -48,18 +49,6 @@ class Entity extends Model
 
     // Scopes
 
-    /**
-     * @param $query
-     * @param string $type
-     * @throws ElementNotRegisteredException
-     */
-    public function scopeType($query, string $type)
-    {dd('remove');
-        $type = elements()->resolveType($type);
-
-        $query->whereHasProperty('type', $type);
-    }
-
     public function scopeWhereHasProperty($query, Property $property, $operator = '', $value = null)
     {
         $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
@@ -85,6 +74,8 @@ class Entity extends Model
     /**
      * @param string $type
      * @return Element
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
     public function toElement(string $type)
     {

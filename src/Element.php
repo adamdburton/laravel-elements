@@ -6,6 +6,11 @@ use Carbon\Carbon;
 use Click\Elements\Concerns\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
 use Click\Elements\Definitions\ElementDefinition;
+use Click\Elements\Exceptions\Element\ElementNotInstalledException;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
+use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
+use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
@@ -56,8 +61,8 @@ abstract class Element implements ElementContract
     /**
      * @param null $attributes
      * @param bool $raw
-     * @throws Exceptions\PropertyNotRegisteredException
-     * @throws Exceptions\PropertyValueInvalidException
+     * @throws PropertyNotRegisteredException
+     * @throws PropertyValueInvalidException
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -70,8 +75,8 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws Exceptions\PropertyNotRegisteredException
-     * @throws Exceptions\PropertyValueInvalidException
+     * @throws PropertyNotRegisteredException
+     * @throws PropertyValueInvalidException
      */
     public static function __callStatic($method, $parameters)
     {
@@ -82,8 +87,8 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws Exceptions\ElementNotInstalledException
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws ElementNotRegisteredException
      */
     public function __call($method, $parameters)
     {
@@ -96,8 +101,8 @@ abstract class Element implements ElementContract
 
     /**
      * @return Builder
-     * @throws Exceptions\ElementNotInstalledException
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws ElementNotRegisteredException
      */
     public function query()
     {
@@ -150,28 +155,44 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return ElementDefinition
-     * @throws Exceptions\ElementNotRegisteredException
-     */
-    public function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->getElementTypeName());
-    }
-
-    /**
-     * @return string
-     */
-    public function getElementTypeName()
-    {
-        return $this->typeName ?: get_class($this);
-    }
-
-    /**
      * @return string
      */
     public function getAlias()
     {
         return $this->aliasName ?: Str::camel(class_basename($this));
+    }
+
+    /**
+     * @return Validator
+     * @throws ElementNotRegisteredException
+     */
+    public function validate()
+    {
+        return $this->query->validateWith($this->attributes);
+    }
+
+    /**
+     * @return Element[]
+     * @throws ElementNotInstalledException
+     * @throws ElementNotRegisteredException
+     */
+    public function all()
+    {
+        return $this->query()->get();
+    }
+
+    /**
+     * @return array
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     */
+    public function toJson()
+    {
+        return [
+            'meta' => $this->getMeta(),
+            'attributes' => $this->getAttributes(),
+            'properties' => collect($this->getElementDefinition()->getProperties())->map->toJson()
+        ];
     }
 
     /**
@@ -187,34 +208,20 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return Validator
-     * @throws Exceptions\ElementNotRegisteredException
+     * @return ElementDefinition
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
-    public function validate()
+    public function getElementDefinition()
     {
-        return $this->query->validateWith($this->attributes);
+        return elements()->getElementDefinition($this->getElementTypeName());
     }
 
     /**
-     * @return Element[]
-     * @throws Exceptions\ElementNotInstalledException
-     * @throws Exceptions\ElementNotRegisteredException
+     * @return string
      */
-    public function all()
+    public function getElementTypeName()
     {
-        return $this->query()->get();
-    }
-
-    /**
-     * @return array
-     * @throws Exceptions\ElementNotRegisteredException
-     */
-    public function toJson()
-    {
-        return [
-            'meta' => $this->getMeta(),
-            'attributes' => $this->getAttributes(),
-            'properties' => collect($this->getElementDefinition()->getProperties())->map->toJson()
-        ];
+        return $this->typeName ?: get_class($this);
     }
 }

@@ -3,8 +3,8 @@
 namespace Click\Elements\Concerns;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\PropertyValueInvalidException;
-use Click\Elements\Exceptions\PropertyNotRegisteredException;
+use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
+use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Types\PropertyType;
 use Illuminate\Support\Str;
 

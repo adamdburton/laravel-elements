@@ -3,7 +3,7 @@
 namespace Click\Elements\Elements;
 
 use Click\Elements\Element;
-use Click\Elements\Exceptions\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 
 /**

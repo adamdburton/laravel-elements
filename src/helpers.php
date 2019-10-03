@@ -1,17 +1,20 @@
 <?php
 
 use Click\Elements\Elements;
+use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
-if (!function_exists('elements_path')) {
+if (!function_exists('elements')) {
     /**
-     * @return Elements::class
+     * @return Elements
+     * @throws ElementsNotInstalledException
      */
     function elements()
     {
         try {
-            return app(\Click\Elements\Elements::class);
-        } catch (\Illuminate\Contracts\Container\BindingResolutionException $e) {
-            // How
+            return app()->make(Elements::class);
+        } catch (BindingResolutionException $e) {
+            throw new ElementsNotInstalledException();
         }
     }
 }

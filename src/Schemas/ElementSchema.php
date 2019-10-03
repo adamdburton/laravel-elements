@@ -2,8 +2,8 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Exceptions\PropertyKeyInvalidException;
-use Click\Elements\Exceptions\RelationTypeInvalidException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Property\RelationTypeInvalidException;
 use Click\Elements\Exceptions\SchemaPropertyAlreadyDefined;
 use Click\Elements\Schema;
 use Click\Elements\Types\PropertyType;
@@ -109,6 +109,11 @@ class ElementSchema extends Schema
         return $this->add($key, PropertyType::JSON);
     }
 
+    public function belongsTo($key, string $elementAlias)
+    {
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
+    }
+
     /**
      * @param $key
      * @param string $elementAlias
@@ -124,11 +129,6 @@ class ElementSchema extends Schema
         return $this->add($key, PropertyType::RELATION)
             ->relationElement($elementAlias)
             ->relationType($relationType);
-    }
-
-    public function belongsTo($key, string $elementAlias)
-    {
-        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
     }
 
     /**

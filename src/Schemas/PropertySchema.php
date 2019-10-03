@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Exceptions\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Schema;
 
 /**

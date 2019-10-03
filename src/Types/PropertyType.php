@@ -2,8 +2,7 @@
 
 namespace Click\Elements\Types;
 
-use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\PropertyValueInvalidException;
+use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Type;
 
 /**

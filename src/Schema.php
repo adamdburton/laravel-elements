@@ -3,7 +3,7 @@
 namespace Click\Elements;
 
 use Click\Elements\Contracts\SchemaContract;
-use Click\Elements\Exceptions\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 
 /**
  * A blueprint-like interface for defining Element properties.

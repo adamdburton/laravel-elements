@@ -4,8 +4,8 @@ namespace Click\Elements;
 
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Elements\ElementType;
-use Click\Elements\Exceptions\ElementClassInvalidException;
-use Click\Elements\Exceptions\ElementNotRegisteredException;
+use Click\Elements\Exceptions\Element\ElementClassInvalidException;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\TablesMissingException;
 use Click\Elements\Schemas\ElementSchema;
 use Illuminate\Support\Facades\DB;
@@ -102,17 +102,6 @@ class Elements
     }
 
     /**
-     * @param $type
-     * @throws ElementNotRegisteredException
-     */
-    public function validateType($type)
-    {
-        if (!isset($this->elementDefinitions[$type])) {
-            throw new ElementNotRegisteredException($type);
-        }
-    }
-
-    /**
      * @param string $type
      * @return string
      * @throws ElementNotRegisteredException
@@ -126,6 +115,17 @@ class Elements
         $this->validateType($type);
 
         return $type;
+    }
+
+    /**
+     * @param $type
+     * @throws ElementNotRegisteredException
+     */
+    public function validateType($type)
+    {
+        if (!isset($this->elementDefinitions[$type])) {
+            throw new ElementNotRegisteredException($type);
+        }
     }
 
     /**

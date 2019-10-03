@@ -1,6 +1,6 @@
 <?php
 
-namespace Click\Elements\Exceptions;
+namespace Click\Elements\Exceptions\Property;
 
 use Exception;
 

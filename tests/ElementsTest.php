@@ -2,9 +2,8 @@
 
 namespace Click\Elements\Tests;
 
-use Click\Elements\Exceptions\ElementNotInstalledException;
-use Click\Elements\Exceptions\ElementValidationFailed;
-use Click\Elements\Exceptions\PropertyNotRegisteredException;
+use Click\Elements\Exceptions\Element\ElementNotInstalledException;
+use Click\Elements\Exceptions\Element\ElementValidationFailed;
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\Assets\ValidationElement;
 

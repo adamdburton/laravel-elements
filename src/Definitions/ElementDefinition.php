@@ -5,8 +5,8 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Element;
 use Click\Elements\Elements\ElementType;
-use Click\Elements\Exceptions\ElementNotInstalledException;
-use Click\Elements\Exceptions\PropertyNotInstalledException;
+use Click\Elements\Exceptions\Element\ElementNotInstalledException;
+use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\ElementSchema;
 use Illuminate\Support\Facades\Log;
@@ -62,6 +62,27 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
+     * Loads the proeprty models from the database.
+     */
+    protected function load()
+    {
+        if (!$this->loaded) {
+            $this->propertyModels = Property::where('element', $this->getAlias())->get()->keyBy('key')->all();
+
+            $this->loaded = true;
+            $this->installed = true;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->element->getAlias();
+    }
+
+    /**
      * @return Element
      */
     public function install()
@@ -105,19 +126,23 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
-     * @return string
+     * @return array
      */
-    public function getClass()
+    protected function buildPropertyDefinitions()
     {
-        return get_class($this->element);
+        return collect($this->schema->getSchema())
+            ->map(function ($schema) {
+                return new PropertyDefinition($this, $schema);
+            })
+            ->all();
     }
 
     /**
      * @return string
      */
-    public function getAlias()
+    public function getClass()
     {
-        return $this->element->getAlias();
+        return get_class($this->element);
     }
 
     /**
@@ -150,14 +175,6 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
-     * @return bool
-     */
-    public function isInstalled()
-    {
-        return $this->installed;
-    }
-
-    /**
      * @param $key
      * @return PropertyDefinition|null
      */
@@ -166,23 +183,6 @@ class ElementDefinition implements DefinitionContract
         $properties = $this->getProperties();
 
         return $properties[$key] ?? null;
-    }
-
-    /**
-     * @return array
-     * @throws ElementNotInstalledException
-     */
-    public function getPropertyModels()
-    {
-        if (!$this->loaded) {
-            $this->load();
-        }
-
-        if (!$this->isInstalled()) {
-            throw new ElementNotInstalledException($this->getClass());
-        }
-
-        return $this->propertyModels;
     }
 
     /**
@@ -203,27 +203,27 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
-     * Loads the proeprty models from the database.
+     * @return array
+     * @throws ElementNotInstalledException
      */
-    protected function load()
+    public function getPropertyModels()
     {
         if (!$this->loaded) {
-            $this->propertyModels = Property::where('element', $this->getAlias())->get()->keyBy('key')->all();
-
-            $this->loaded = true;
-            $this->installed = true;
+            $this->load();
         }
+
+        if (!$this->isInstalled()) {
+            throw new ElementNotInstalledException($this->getClass());
+        }
+
+        return $this->propertyModels;
     }
 
     /**
-     * @return array
+     * @return bool
      */
-    protected function buildPropertyDefinitions()
+    public function isInstalled()
     {
-        return collect($this->schema->getSchema())
-            ->map(function ($schema) {
-                return new PropertyDefinition($this, $schema);
-            })
-            ->all();
+        return $this->installed;
     }
 }

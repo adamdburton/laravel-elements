@@ -2,10 +2,6 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\PropertyValueInvalidException;
-use Click\Elements\Exceptions\PropertyTypeInvalidException;
-
 /**
  * Class Type
  */

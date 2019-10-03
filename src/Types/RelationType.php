@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Types;
 
-use Click\Elements\Exceptions\RelationTypeInvalidException;
+use Click\Elements\Exceptions\Property\RelationTypeInvalidException;
 use Click\Elements\Type;
 
 /**
@@ -11,17 +11,6 @@ use Click\Elements\Type;
 class RelationType extends Type
 {
     public const BELONGS_TO = 'belongs_to';
-
-
-    /**
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return [
-            self::BELONGS_TO,
-        ];
-    }
 
     /**
      * @param string $key
@@ -34,5 +23,15 @@ class RelationType extends Type
         if (!in_array($type, self::getTypes())) {
             throw new RelationTypeInvalidException($type);
         }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getTypes()
+    {
+        return [
+            self::BELONGS_TO,
+        ];
     }
 }

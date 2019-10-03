@@ -1,8 +1,7 @@
 <?php
 
-namespace Click\Elements\Exceptions;
+namespace Click\Elements\Exceptions\Property;
 
-use Click\Elements\Definitions\PropertyDefinition;
 use Exception;
 
 class PropertyNotInstalledException extends Exception

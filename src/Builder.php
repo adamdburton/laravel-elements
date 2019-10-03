@@ -2,14 +2,15 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Contracts\ElementContract;
-use Click\Elements\Exceptions\ElementNotInstalledException;
-use Click\Elements\Exceptions\ElementValidationFailed;
-use Click\Elements\Exceptions\PropertyNotInstalledException;
+use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Exceptions\Element\ElementNotInstalledException;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
+use Click\Elements\Exceptions\Element\ElementValidationFailed;
+use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
 use Click\Elements\Models\Entity;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder as BaseBuilder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -29,8 +30,9 @@ class Builder
 
     /**
      * @param Element $element
-     * @throws Exceptions\ElementNotRegisteredException
-     * @throws Exceptions\ElementNotInstalledException
+     * @throws ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function __construct(Element $element)
     {
@@ -48,8 +50,9 @@ class Builder
      * @param string $operator
      * @param null $value
      * @return $this
-     * @throws Exceptions\ElementNotRegisteredException
-     * @throws Exceptions\ElementNotInstalledException
+     * @throws ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws Exceptions\ElementsNotInstalledException
      * @see Entity::scopeWhereHasProperty()
      */
     public function where($property, $operator = '', $value = null)
@@ -66,8 +69,29 @@ class Builder
     }
 
     /**
+     * @param Request $request
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
+     */
+    public function applyRequest(Request $request)
+    {
+        $params = $request->all();
+
+        // Search properties
+
+        $properties = $this->element->getElementDefinition()->getProperties();
+
+        collect($properties)->each(function (PropertyDefinition $property) use ($params) {
+            if (isset($params[$key = $property->getKey()])) {
+                $this->where($key, $params[$key]);
+            }
+        });
+    }
+
+    /**
      * @return Element[]
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function get()
     {
@@ -75,13 +99,36 @@ class Builder
     }
 
     /**
+     * @param Collection $models
+     * @return Element[]
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
+     */
+    protected function mapIntoElements(Collection $models)
+    {
+        return $models->map->toElement($this->element->getElementDefinition()->getClass());
+    }
+
+    /**
      * @param $id
      * @return Element
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function find($id)
     {
         return $this->mapIntoElement($this->query->find($id));
+    }
+
+    /**
+     * @param Entity $model
+     * @return Element
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
+     */
+    protected function mapIntoElement(Entity $model)
+    {
+        return $model->toElement($this->element->getElementDefinition()->getClass());
     }
 
     /**
@@ -96,8 +143,9 @@ class Builder
      * @param array $attributes
      * @return Element
      * @throws ElementValidationFailed
-     * @throws Exceptions\ElementNotRegisteredException
-     * @throws Exceptions\ElementNotInstalledException
+     * @throws ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function create(array $attributes)
     {
@@ -119,7 +167,8 @@ class Builder
     /**
      * @param array $attributes
      * @throws ElementValidationFailed
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     protected function validate(array $attributes)
     {
@@ -133,7 +182,8 @@ class Builder
     /**
      * @param $attributes
      * @return \Illuminate\Contracts\Validation\Validator
-     * @throws Exceptions\ElementNotRegisteredException
+     * @throws ElementNotRegisteredException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function validateWith($attributes)
     {
@@ -160,8 +210,9 @@ class Builder
      * @param array $attributes
      * @return Element
      * @throws ElementValidationFailed
-     * @throws Exceptions\ElementNotRegisteredException
-     * @throws Exceptions\ElementNotInstalledException
+     * @throws ElementNotRegisteredException
+     * @throws ElementNotInstalledException
+     * @throws Exceptions\ElementsNotInstalledException
      */
     public function update(array $attributes)
     {
@@ -180,25 +231,5 @@ class Builder
         $entity->properties()->sync($relations);
 
         return $entity->toElement($this->element->getAlias());
-    }
-
-    /**
-     * @param Entity $model
-     * @return Element
-     * @throws Exceptions\ElementNotRegisteredException
-     */
-    protected function mapIntoElement(Entity $model)
-    {
-        return $model->toElement($this->element->getElementDefinition()->getClass());
-    }
-
-    /**
-     * @param Collection $models
-     * @return Element[]
-     * @throws Exceptions\ElementNotRegisteredException
-     */
-    protected function mapIntoElements(Collection $models)
-    {
-        return $models->map->toElement($this->element->getElementDefinition()->getClass());
     }
 }
