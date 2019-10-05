@@ -5,6 +5,7 @@ namespace Click\Elements\Elements;
 use Click\Elements\Element;
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
+use Click\Elements\Types\RelationType;
 
 /**
  * Element for element types
@@ -14,6 +15,7 @@ class ElementType extends Element
     /**
      * @param ElementSchema $schema
      * @throws PropertyKeyInvalidException
+     * @throws \Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException
      */
     public function getDefinition(ElementSchema $schema)
     {
@@ -21,5 +23,7 @@ class ElementType extends Element
             ->label('Class')
             ->description('The Element class name.')
             ->required();
+
+        $schema->relation('something', ElementType::class, RelationType::BELONGS_TO);
     }
 }

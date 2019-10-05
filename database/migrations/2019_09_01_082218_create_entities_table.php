@@ -16,7 +16,8 @@ class CreateEntitiesTable extends Migration
         Schema::create('elements_entities', function (Blueprint $table) {
             $table->bigIncrements('id');
 //            $table->string('uuid')->unique();
-            $table->nullableMorphs('model');
+            $table->string('type')->index();
+            $table->nullableMorphs('bindable');
             $table->timestamps();
         });
     }

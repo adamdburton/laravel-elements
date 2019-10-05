@@ -1,6 +1,6 @@
 <?php
 
-namespace Click\Elements\Concerns;
+namespace Click\Elements\Concerns\Element;
 
 use Click\Elements\Element;
 use Illuminate\Database\Eloquent\Model;

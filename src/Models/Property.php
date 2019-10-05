@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model for storing properties
+ * @property int id
+ * @property string type
  */
 class Property extends Model
 {
@@ -53,12 +55,12 @@ class Property extends Model
         $query->where('type', $type);
     }
 
-    // Attributes
+    // Functions
 
     /**
      * @return string
      */
-    public function getTypeColumnAttribute()
+    public function pivotColumnKey()
     {
         $type = $this->type;
 

@@ -3,10 +3,10 @@
 namespace Click\Elements;
 
 use Carbon\Carbon;
-use Click\Elements\Concerns\HasTypedProperties;
+use Click\Elements\Concerns\Element\HasScopes;
+use Click\Elements\Concerns\Element\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
@@ -16,16 +16,21 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
- * The base Element class. You should extend this
+ * The base Element class. You should extend this!
  *
  * @method static Element create(array $attributes)
- * @method static Element update(array $attributes)
  * @see Builder::create()
+ *
+ * @method static Element update(array $attributes)
  * @see Builder::update()
+ *
+ * @method ElementDefinition getElementDefinition()
+ * @see Builder::getElementDefinition()
  */
 abstract class Element implements ElementContract
 {
     use HasTypedProperties;
+    use HasScopes;
     use ForwardsCalls;
 
     /**
@@ -87,24 +92,28 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws ElementNotInstalledException
-     * @throws ElementNotRegisteredException
      */
     public function __call($method, $parameters)
     {
-        if (!$this->query) {
-            $this->query = $this->query();
-        }
-
-        return $this->forwardCallTo($this->query, $method, $parameters);
+        return $this->forwardCallTo($this->query(), $method, $parameters);
     }
 
     /**
      * @return Builder
-     * @throws ElementNotInstalledException
-     * @throws ElementNotRegisteredException
      */
     public function query()
+    {
+        if (!$this->query) {
+            $this->query = $this->newQuery();
+        }
+
+        return $this->query;
+    }
+
+    /**
+     * @return Builder
+     */
+    protected function newQuery()
     {
         return new Builder($this);
     }
@@ -115,22 +124,6 @@ abstract class Element implements ElementContract
     public function getPrimaryKey()
     {
         return $this->primaryKey;
-    }
-
-    /**
-     * @return Carbon
-     */
-    public function getCreatedAt()
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @return Carbon
-     */
-    public function getUpdatedAt()
-    {
-        return $this->updatedAt;
     }
 
     /**
@@ -165,6 +158,7 @@ abstract class Element implements ElementContract
     /**
      * @return Validator
      * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
     public function validate()
     {
@@ -173,8 +167,8 @@ abstract class Element implements ElementContract
 
     /**
      * @return Element[]
-     * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
     public function all()
     {
@@ -183,8 +177,6 @@ abstract class Element implements ElementContract
 
     /**
      * @return array
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
     public function toJson()
     {
@@ -208,19 +200,9 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return ElementDefinition
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    public function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->getElementTypeName());
-    }
-
-    /**
      * @return string
      */
-    public function getElementTypeName()
+    public function getElementClass()
     {
         return $this->typeName ?: get_class($this);
     }

@@ -11,6 +11,7 @@ use Click\Elements\Type;
 class RelationType extends Type
 {
     public const BELONGS_TO = 'belongs_to';
+    public const BELONGS_TO_MANY = 'belongs_to_many';
 
     /**
      * @param string $key
@@ -18,7 +19,7 @@ class RelationType extends Type
      * @param $value
      * @throws RelationTypeInvalidException
      */
-    public static function validateValue(string $key, $type, $value)
+    public static function validateValue($type)
     {
         if (!in_array($type, self::getTypes())) {
             throw new RelationTypeInvalidException($type);
@@ -32,6 +33,7 @@ class RelationType extends Type
     {
         return [
             self::BELONGS_TO,
+            self::BELONGS_TO_MANY
         ];
     }
 }

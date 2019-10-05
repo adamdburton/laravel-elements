@@ -12,6 +12,7 @@ class PropertyType extends Type
 {
     public const BOOLEAN = 'boolean';
     public const INTEGER = 'integer';
+    public const UNSIGNED_INTEGER = '-integer';
     public const DOUBLE = 'double';
     public const STRING = 'string';
     public const TEXT = 'text';
@@ -28,6 +29,7 @@ class PropertyType extends Type
         return [
             self::BOOLEAN,
             self::INTEGER,
+            self::UNSIGNED_INTEGER,
             self::DOUBLE,
             self::STRING,
             self::TEXT,
@@ -36,27 +38,5 @@ class PropertyType extends Type
             self::RELATION,
             self::TIMESTAMP
         ];
-    }
-
-    /**
-     * @param string $key
-     * @param string $type
-     * @param $value
-     * @return mixed
-     * @throws PropertyValueInvalidException
-     */
-    public static function validateValue(string $key, string $type, $value)
-    {
-        switch ($type) {
-            case PropertyType::JSON:
-                $type = PropertyType::ARRAY;
-                break;
-            case PropertyType::RELATION:
-                $type = PropertyType::INTEGER;
-        }
-
-        if (gettype($value) !== $type) {
-            throw new PropertyValueInvalidException($key, $type, $value);
-        }
     }
 }

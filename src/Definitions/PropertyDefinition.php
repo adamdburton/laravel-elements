@@ -5,6 +5,8 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\PropertySchema;
+use Click\Elements\Types\PropertyType;
+use Click\Elements\Types\RelationType;
 
 /**
  * Property definition container
@@ -86,7 +88,7 @@ class PropertyDefinition implements DefinitionContract
     /**
      * @param null $key
      * @param null $default
-     * @return array
+     * @return mixed
      */
     public function getMeta($key = null, $default = null)
     {
@@ -95,11 +97,27 @@ class PropertyDefinition implements DefinitionContract
         return $key ? ($meta[$key] ?? $default) : $meta;
     }
 
+    public function getRelations($value)
+    {
+        $relationType = $this->getMeta('relationType');
+
+        switch ($relationType) {
+            case RelationType::BELONGS_TO:
+            case RelationType::BELONGS_TO_MANY:
+                return $value;
+                break;
+        }
+    }
+
     /**
      * @return Property
      */
     public function install()
     {
-        return Property::create(['element' => $this->elementDefinition->getAlias(), 'key' => $this->getKey(), 'type' => $this->getType()]);
+        return Property::create([
+            'element' => $this->elementDefinition->getAlias(),
+            'key' => $this->getKey(),
+            'type' => $this->getType()
+        ]);
     }
 }

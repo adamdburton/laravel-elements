@@ -9,27 +9,21 @@ use Illuminate\Support\MessageBag;
 
 class ElementValidationFailed extends Exception
 {
-    /**
-     * @var Element
-     */
-    protected $element;
 
     /**
      * @var Validator
      */
     protected $validator;
 
-    public function __construct(Element $element, Validator $validator)
+    public function __construct(string $element, Validator $validator)
     {
-        $this->element = $element;
         $this->validator = $validator;
 
         $failed = $validator->getMessageBag()->keys();
 
-        $type = $element->getElementDefinition()->getClass();
         $properties = '"' . implode('", "', $failed) . '"';
 
-        parent::__construct(sprintf('Element "%s" has failed validation on %s.', $type, $properties));
+        parent::__construct(sprintf('Element "%s" has failed validation on %s.', $element, $properties));
     }
 
     /**

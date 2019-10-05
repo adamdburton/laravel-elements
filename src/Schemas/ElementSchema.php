@@ -19,29 +19,32 @@ class ElementSchema extends Schema
      */
     protected $schema = [];
 
-    public function __construct()
-    {
-        $this->add('type', PropertyType::STRING)->label('Element Type');
-    }
-
     /**
      * @param $key
      * @param $type
+     * @param null $schema
      * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
      */
-    protected function add($key, $type)
+    protected function add($key, $type, $schema = null)
     {
         if (isset($this->schema[$key])) {
-            throw new PropertyAlreadyDefinedException($key, $this);
+            throw new PropertyAlreadyDefinedException($key);
         }
 
-        return $this->schema[$key] = new PropertySchema($key, $type);
+        $this->validateKey($key);
+
+        /** @var string $schema */
+        $schema = $schema ?: PropertySchema::class;
+
+        return $this->schema[$key] = new $schema($key, $type);
     }
 
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
      */
     public function boolean($key)
@@ -52,6 +55,7 @@ class ElementSchema extends Schema
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
      */
     public function integer($key)
@@ -62,6 +66,18 @@ class ElementSchema extends Schema
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     */
+    public function unsignedInteger($key)
+    {
+        return $this->add($key, PropertyType::UNSIGNED_INTEGER);
+    }
+
+    /**
+     * @param $key
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
      */
     public function double($key)
@@ -72,6 +88,7 @@ class ElementSchema extends Schema
     /**
      * @param $key
      * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
      */
     public function string($key)
@@ -83,6 +100,7 @@ class ElementSchema extends Schema
      * @param $key
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
+     * @throws PropertyAlreadyDefinedException
      */
     public function text($key)
     {
@@ -93,6 +111,7 @@ class ElementSchema extends Schema
      * @param $key
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
+     * @throws PropertyAlreadyDefinedException
      */
     public function array($key)
     {
@@ -103,15 +122,11 @@ class ElementSchema extends Schema
      * @param $key
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
+     * @throws PropertyAlreadyDefinedException
      */
     public function json($key)
     {
         return $this->add($key, PropertyType::JSON);
-    }
-
-    public function belongsTo($key, string $elementAlias)
-    {
-        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
     }
 
     /**
@@ -121,20 +136,48 @@ class ElementSchema extends Schema
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
      * @throws RelationTypeInvalidException
+     * @throws PropertyAlreadyDefinedException
      */
     public function relation($key, string $elementAlias, string $relationType)
     {
         RelationType::validateValue($key, $relationType, $relationType);
 
         return $this->add($key, PropertyType::RELATION)
-            ->relationElement($elementAlias)
+            ->elementType($elementAlias)
             ->relationType($relationType);
+    }
+
+    /**
+     * @param $key
+     * @param string $elementAlias
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     * @throws RelationTypeInvalidException
+     */
+    public function belongsTo($key, string $elementAlias)
+    {
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
+    }
+
+    /**
+     * @param $key
+     * @param string $elementAlias
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     * @throws RelationTypeInvalidException
+     */
+    public function belongsToMany($key, string $elementAlias)
+    {
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO_MANY);
     }
 
     /**
      * @param $key
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
+     * @throws PropertyAlreadyDefinedException
      */
     public function timestamp($key)
     {

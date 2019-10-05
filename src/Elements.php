@@ -37,11 +37,21 @@ class Elements
 
         $this->register(ElementType::class)->install();
 
-        foreach ($this->getDefinitions() as $type => $definition) {
+        foreach ($this->getDefinitions() as $definition) {
             Log::debug('Installing registered element.', ['element' => $definition->getClass()]);
 
             $definition->install();
         }
+    }
+
+    /**
+     * @return bool
+     * @throws ElementNotRegisteredException
+     * @throws TablesMissingException
+     */
+    public function isInstalled()
+    {
+        return $this->checkTablesExist() && $this->getElementDefinition('elementType') !== null;
     }
 
     /**
@@ -84,25 +94,22 @@ class Elements
      */
     protected function getDefinitions()
     {
-        return array_filter($this->elementDefinitions, function (ElementDefinition $definition) {
-            return !in_array($definition->getClass(), [
-                ElementType::class
-            ]);
-        });
+        return $this->elementDefinitions;
     }
 
     /**
      * @param $type
      * @param array $attributes
      * @param array $meta
+     * @param null $relations
      * @return Element
      * @throws ElementNotRegisteredException
      */
-    public function factory($type, $attributes = null, $meta = null)
+    public function factory($type, $attributes = null, $meta = null, $relations = null)
     {
         $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->factory($attributes, $meta);
+        return $this->getElementDefinition($type)->factory($attributes, $meta, $relations);
     }
 
     /**

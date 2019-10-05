@@ -13,7 +13,7 @@ class ElementsTest extends TestCase
 
     public function test_register_without_install()
     {
-        $elementType = $this->elements->register(PlainElement::class);
+        $this->elements->register(PlainElement::class);
 
         $this->expectException(ElementNotInstalledException::class);
 
@@ -22,7 +22,7 @@ class ElementsTest extends TestCase
 
     public function test_set_invalid_property()
     {
-        $elementType = $this->elements->register(ValidationElement::class)->install();
+        $this->elements->register(ValidationElement::class)->install();
 
         $this->expectException(ElementValidationFailed::class);
 

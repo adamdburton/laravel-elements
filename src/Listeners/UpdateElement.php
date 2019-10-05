@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Listeners;
 
-use Click\Elements\Concerns\TwoWayBinding;
+use Click\Elements\Concerns\Element\TwoWayBinding;
 use Click\Elements\Events\ModelSaved;
 
 /**

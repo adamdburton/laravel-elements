@@ -6,34 +6,42 @@ use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Pivots\EntityProperty;
+use Click\Elements\Scopes\ElementScope;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Carbon;
 
 /**
  * Model for storing entities
+ * @property Collection properties Always loaded
+ * @property int id
+ * @property string type
+ * @property Carbon created_at
+ * @property Carbon updated_at
  */
 class Entity extends Model
 {
     protected $table = 'elements_entities';
 
+    protected $fillable = ['type'];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(new ElementScope); // Forces properties to auto-load
+    }
+
     // Relationships
 
     /**
-     * @return BelongsToMany
+     * @return HasManyThrough
      */
-    public function parents()
+    public function relations()
     {
-        return $this->belongsToMany(Entity::class, 'element_entity_relations', 'child_entity_id', 'parent_entity_id')
-            ->withPivot('property_id');
-    }
-
-    /**
-     * @return BelongsToMany
-     */
-    public function children()
-    {
-        return $this->belongsToMany(Entity::class, 'element_entity_relations', 'parent_entity_id', 'child_entity_id')
-            ->withPivot('property_id');
+        return $this->hasManyThrough(Entity::class, EntityProperty::class, 'entity_id', 'int_value', 'id', 'entity_id');
     }
 
     /**
@@ -43,41 +51,28 @@ class Entity extends Model
     {
         return $this->belongsToMany(Property::class, 'elements_entity_properties')
             ->using(EntityProperty::class)
-            ->withPivot('boolean_value', 'integer_value', 'double_value', 'string_value', 'text_value', 'json_value')
+            ->withPivot(
+                'boolean_value',
+                'integer_value',
+                'unsigned_integer_value',
+                'double_value',
+                'string_value',
+                'text_value',
+                'json_value'
+            )
             ->withTimestamps();
-    }
-
-    // Scopes
-
-    public function scopeWhereHasProperty($query, Property $property, $operator = '', $value = null)
-    {
-        $query->whereHas('properties', function ($query) use ($property, $operator, $value) {
-            $query
-                ->where('property_id', $property->id)
-                ->where($property->type . '_value', $value ? $operator : '=', $value ?? $operator);
-        });
-    }
-
-    public function scopeWhereHasPropertyIn($query, $property, $values)
-    {
-        $query->whereHas('properties', function ($query) use ($property, $values) {
-//            $prop = elements()->properties()->getProperty($property);
-//
-//            $query
-//                ->where('property_id', $prop->id)
-//                ->whereIn($prop->type . '_value', $values);
-        });
     }
 
     // Methods
 
     /**
      * @param string $type
+     * @param array $relations
      * @return Element
      * @throws ElementNotRegisteredException
      * @throws ElementsNotInstalledException
      */
-    public function toElement(string $type)
+    public function toElement(string $type, array $relations = null)
     {
         $attributes = $this->properties->mapWithKeys(function ($property) {
             $type = $property->typeColumn;
@@ -86,11 +81,12 @@ class Entity extends Model
 
         $meta = [
             'id' => $this->id,
+            'type' => $this->type,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
 
-        return elements()->factory($type, $attributes, $meta);
+        return elements()->factory($type, $attributes, $meta, $relations);
     }
 
     /**
