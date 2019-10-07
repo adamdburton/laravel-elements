@@ -3,10 +3,6 @@
 namespace Click\Elements\Concerns\Builder;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\Element\ElementNotInstalledException;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
-use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
 use Click\Elements\Models\Property;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
 
@@ -15,16 +11,36 @@ use Illuminate\Database\Eloquent\Builder as Eloquent;
  * @method Property getPropertyModel($key)
  * @method PropertyDefinition getPropertyDefinition($key)
  */
-trait QueriesRelatedElements
+trait QueriesProperties
 {
+    /**
+     * @param string $property
+     * @param string $operator
+     * @param null $value
+     * @return $this
+     * @see Entity::scopeWhereHasProperty()
+     */
+    public function where(string $property, $operator = '', $value = null)
+    {
+        // We could be querying the elements property values OR the elements RELATIONS property values
 
+        if (substr_count($property, '.') === 1) {
+            // e.g. localRelationProperty.foreignProperty = value
+
+            $this->whereRelation($this->query(), $property, $operator, $value);
+        } else {
+            // e.g. localProperty = value
+
+            $this->whereProperty($this->query(), $property, $operator, $value);
+        }
+
+        return $this;
+    }
     /**
      * @param Eloquent $query
      * @param string $property
      * @param string $operator
      * @param $value
-     * @throws ElementNotInstalledException
-     * @throws PropertyNotInstalledException
      */
     protected function whereProperty(Eloquent $query, string $property, $operator = '', $value = null)
     {
@@ -35,41 +51,6 @@ trait QueriesRelatedElements
             $query
                 ->where('property_id', $propertyModel->id)
                 ->where($propertyModel->pivotColumnKey() . '_value', $value ? $operator : '=', $value ?? $operator);
-        });
-    }
-
-    /**
-     * @param Eloquent $query
-     * @param $property
-     * @param $operator
-     * @param $value
-     * @throws ElementNotInstalledException
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     * @throws PropertyNotInstalledException
-     */
-    protected function whereRelation(Eloquent $query, $property, $operator, $value)
-    {
-        // e.g. localProperty.foreignProperty = 123
-        // e.g. localProperty.foreignRelation.foreignProperty = 123
-
-
-        $parts = explode('.', $property);
-
-        $localPropertyName = $parts[0];
-        $foreignPropertyName = $parts[1];
-
-        if (strstr($foreignPropertyName, '.')) {
-            // Foreign relation property where
-        } else {
-            // Foreign property where
-            $this->whereRelationProperty($foreignPropertyName, $operator, $value);
-        }
-
-        $propertyModel = $this->getPropertyModel();
-        $propertyDefinition = $this->getPropertyDefinition($property);
-
-        $query->whereHas('relations', function (Eloquent $query) {
         });
     }
 

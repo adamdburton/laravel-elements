@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Listeners;
 
-use Click\Elements\Concerns\Element\TwoWayBinding;
+use Click\Elements\Concerns\Element\HasTwoWayBinding;
 use Click\Elements\Events\ModelSaved;
 
 /**
@@ -18,7 +18,7 @@ class UpdateElement
     {
         $model = $event->model;
 
-        if (in_array(TwoWayBinding::class, class_uses($model))) {
+        if (in_array(HasTwoWayBinding::class, class_uses($model))) {
             if ($model->syncFromModel) {
                 $mapping = $model->mapForElement();
             }

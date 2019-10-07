@@ -51,7 +51,7 @@ class ListElements extends Command
             $rows[$definition->getAlias()] = [
                 $definition->getAlias(),
                 $definition->getClass(),
-                collect($definition->getProperties())->map(function (PropertyDefinition $propertyDefinition) {
+                collect($definition->getPropertyDefinitions())->map(function (PropertyDefinition $propertyDefinition) {
                     return sprintf('%s (%s)', $propertyDefinition->getKey(), $propertyDefinition->getType());
                 })->join("\n"),
                 $definition->isInstalled() ? 'Yes' : 'No'

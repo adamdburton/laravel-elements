@@ -3,12 +3,14 @@
 namespace Click\Elements\Concerns\Element;
 
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
+use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Illuminate\Database\Eloquent\Model;
 
 /**
  * Provides two way binding attributes and methods for Elements
  */
-trait TwoWayBinding
+trait HasTwoWayBinding
 {
     /**
      * Whether to update the model when the element is updated.
@@ -25,10 +27,12 @@ trait TwoWayBinding
     /**
      * @param Element $element
      * @return array
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
     public static function mapForModel(Element $element)
     {
-        return $element->toArray();
+        return $element->toJson();
     }
 
     /**

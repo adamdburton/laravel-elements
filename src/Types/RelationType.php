@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Types;
 
-use Click\Elements\Exceptions\Property\RelationTypeInvalidException;
+use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Type;
 
 /**
@@ -10,19 +10,17 @@ use Click\Elements\Type;
  */
 class RelationType extends Type
 {
-    public const BELONGS_TO = 'belongs_to';
-    public const BELONGS_TO_MANY = 'belongs_to_many';
+    public const SINGLE = 'single';
+    public const MANY = 'many';
 
     /**
-     * @param string $key
      * @param string $type
-     * @param $value
-     * @throws RelationTypeInvalidException
+     * @throws ManyRelationInvalidException
      */
     public static function validateValue($type)
     {
         if (!in_array($type, self::getTypes())) {
-            throw new RelationTypeInvalidException($type);
+            throw new ManyRelationInvalidException($type);
         }
     }
 
@@ -32,8 +30,8 @@ class RelationType extends Type
     public static function getTypes()
     {
         return [
-            self::BELONGS_TO,
-            self::BELONGS_TO_MANY
+            self::SINGLE,
+            self::MANY
         ];
     }
 }

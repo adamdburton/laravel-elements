@@ -3,7 +3,7 @@
 namespace Click\Elements\Tests;
 
 use Click\Elements\Exceptions\Element\ElementNotInstalledException;
-use Click\Elements\Exceptions\Element\ElementValidationFailed;
+use Click\Elements\Exceptions\Element\PropertyValidationFailed;
 use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\Assets\ValidationElement;
 
@@ -24,7 +24,7 @@ class ElementsTest extends TestCase
     {
         $this->elements->register(ValidationElement::class)->install();
 
-        $this->expectException(ElementValidationFailed::class);
+        $this->expectException(PropertyValidationFailed::class);
 
         ValidationElement::create(['string' => 'ewfw']);
     }

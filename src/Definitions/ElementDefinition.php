@@ -10,8 +10,10 @@ use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
+use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\ElementSchema;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -35,19 +37,9 @@ class ElementDefinition implements DefinitionContract
     protected $properties;
 
     /**
-     * @var Property[]
+     * @var Collection
      */
-    protected static $propertyModels = [];
-
-    /**
-     * @var bool
-     */
-    private $installed = false;
-
-    /**
-     * @var bool
-     */
-    private $loaded = false;
+    protected static $propertyModels;
 
     /**
      * @param Element $element
@@ -60,7 +52,7 @@ class ElementDefinition implements DefinitionContract
         $this->schema = $schema;
 
         if ($load) {
-            $this->load();
+            $this->getPropertyModels();
         }
     }
 
@@ -81,7 +73,7 @@ class ElementDefinition implements DefinitionContract
 
         // Install the properties required for the Element.
 
-        $properties = $this->getProperties();
+        $properties = $this->getPropertyDefinitions();
 
         Log::debug(
             'Creating property models for element.',
@@ -97,22 +89,21 @@ class ElementDefinition implements DefinitionContract
 
         // Make a new ElementType.
 
-        $this->propertyModels = $propertyModels->all();
-
-        $this->installed = true;
+        static::$propertyModels = $propertyModels->all();
 
         Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
 
-        return ElementType::create([
-            'class' => $this->getClass(),
-            'type' => $this->getAlias()
+        $element = ElementType::createRaw([
+            'class' => $this->getClass()
         ]);
+
+        return $element;
     }
 
     /**
      * @return PropertyDefinition[]
      */
-    public function getProperties()
+    public function getPropertyDefinitions()
     {
         if (!$this->properties) {
             $this->properties = $this->buildPropertyDefinitions();
@@ -167,13 +158,12 @@ class ElementDefinition implements DefinitionContract
 
     /**
      * @return Builder
-     * @throws ElementNotInstalledException
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
     public function query()
     {
-        return $this->factory()->query();
+        $class = $this->getClass();
+
+        return new Builder(new $class);
     }
 
     /**
@@ -189,12 +179,17 @@ class ElementDefinition implements DefinitionContract
     /**
      * @param $key
      * @return PropertyDefinition|null
+     * @throws PropertyNotRegisteredException
      */
     public function getPropertyDefinition($key)
     {
-        $properties = $this->getProperties();
+        $properties = $this->getPropertyDefinitions();
 
-        return $properties[$key] ?? null;
+        if (!isset($properties[$key])) {
+            throw new PropertyNotRegisteredException($key);
+        }
+
+        return $properties[$key];
     }
 
     /**
@@ -219,11 +214,11 @@ class ElementDefinition implements DefinitionContract
      */
     public function getPropertyModels()
     {
-        if (!self::$propertyModels) {
-            self::$propertyModels = Property::all()->groupBy('element')->keyBy('key')->all();
+        if (!isset(static::$propertyModels[$this->getAlias()])) {
+            static::$propertyModels = Property::all()->groupBy('element');
         }
 
-        return self::$propertyModels[$this->getAlias()];
+        return static::$propertyModels[$this->getAlias()]->keyBy('key');
     }
 
     /**

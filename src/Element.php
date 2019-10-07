@@ -11,7 +11,7 @@ use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
-use Illuminate\Contracts\Validation\Validator;
+use Click\Elements\Models\Entity;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
@@ -21,11 +21,15 @@ use Illuminate\Support\Traits\ForwardsCalls;
  * @method static Element create(array $attributes)
  * @see Builder::create()
  *
+ * @method static Element createRaw(array $attributes)
+ * @see Builder::createRaw()
+ *
  * @method static Element update(array $attributes)
  * @see Builder::update()
  *
- * @method ElementDefinition getElementDefinition()
- * @see Builder::getElementDefinition()
+ * @method static Element updateRaw(array $attributes)
+ * @see Builder::updateRaw()
+ *
  */
 abstract class Element implements ElementContract
 {
@@ -68,6 +72,7 @@ abstract class Element implements ElementContract
      * @param bool $raw
      * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
+     * @throws Exceptions\Property\PropertyValidationFailed
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -82,6 +87,7 @@ abstract class Element implements ElementContract
      * @return mixed
      * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
+     * @throws Exceptions\Property\PropertyValidationFailed
      */
     public static function __callStatic($method, $parameters)
     {
@@ -96,6 +102,16 @@ abstract class Element implements ElementContract
     public function __call($method, $parameters)
     {
         return $this->forwardCallTo($this->query(), $method, $parameters);
+    }
+
+    /**
+     * @return ElementDefinition
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     */
+    public function getElementDefinition()
+    {
+        return elements()->getElementDefinition($this->getAlias());
     }
 
     /**
@@ -132,6 +148,8 @@ abstract class Element implements ElementContract
      */
     public function setMeta(array $meta)
     {
+        // TODO: Make these an actual array or object
+
         if (isset($meta['id'])) {
             $this->primaryKey = $meta['id'];
         }
@@ -156,19 +174,7 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return Validator
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    public function validate()
-    {
-        return $this->query->validateWith($this->attributes);
-    }
-
-    /**
      * @return Element[]
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
     public function all()
     {
@@ -183,7 +189,7 @@ abstract class Element implements ElementContract
         return [
             'meta' => $this->getMeta(),
             'attributes' => $this->getAttributes(),
-            'properties' => collect($this->getElementDefinition()->getProperties())->map->toJson()
+            'properties' => collect($this->getElementDefinition()->getPropertyDefinitions())->map->toJson()
         ];
     }
 
@@ -200,10 +206,10 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return string
+     * @return Entity
      */
-    public function getElementClass()
+    public function getEntity()
     {
-        return $this->typeName ?: get_class($this);
+        return Entity::findOrFail($this->getPrimaryKey());
     }
 }

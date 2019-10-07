@@ -17,7 +17,7 @@ class PlainElement extends Element
         $schema->text('text');
         $schema->array('array');
         $schema->json('json');
-        $schema->relation('relation', 'test', RelationType::BELONGS_TO);
+        $schema->relation('relation', 'test', RelationType::SINGLE);
         $schema->timestamp('timestamp');
     }
 }

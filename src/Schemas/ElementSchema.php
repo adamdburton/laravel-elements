@@ -2,9 +2,9 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
-use Click\Elements\Exceptions\Property\RelationTypeInvalidException;
 use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Schema;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
@@ -135,12 +135,12 @@ class ElementSchema extends Schema
      * @param string $relationType
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
-     * @throws RelationTypeInvalidException
+     * @throws ManyRelationInvalidException
      * @throws PropertyAlreadyDefinedException
      */
     public function relation($key, string $elementAlias, string $relationType)
     {
-        RelationType::validateValue($key, $relationType, $relationType);
+        RelationType::validateValue($relationType);
 
         return $this->add($key, PropertyType::RELATION)
             ->elementType($elementAlias)
@@ -153,7 +153,7 @@ class ElementSchema extends Schema
      * @return PropertySchema
      * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
-     * @throws RelationTypeInvalidException
+     * @throws ManyRelationInvalidException
      */
     public function belongsTo($key, string $elementAlias)
     {
@@ -166,7 +166,7 @@ class ElementSchema extends Schema
      * @return PropertySchema
      * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
-     * @throws RelationTypeInvalidException
+     * @throws ManyRelationInvalidException
      */
     public function belongsToMany($key, string $elementAlias)
     {

@@ -27,7 +27,7 @@ trait HasScopes
      */
     public function applyScope($key, Builder $query, $arguments = [])
     {
-        array_unshift($arguments, $query);
+        array_unshift($arguments, $query); // Add the query as the first argument
 
         return $this->{'scope' . Str::studly($key)}($arguments);
     }

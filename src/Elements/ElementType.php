@@ -23,7 +23,5 @@ class ElementType extends Element
             ->label('Class')
             ->description('The Element class name.')
             ->required();
-
-        $schema->relation('something', ElementType::class, RelationType::BELONGS_TO);
     }
 }

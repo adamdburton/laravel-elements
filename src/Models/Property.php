@@ -5,6 +5,7 @@ namespace Click\Elements\Models;
 use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\Types\PropertyType;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Model for storing properties
@@ -30,6 +31,9 @@ class Property extends Model
 
     // Relationships
 
+    /**
+     * @return BelongsToMany
+     */
     public function elements()
     {
         return $this->belongsToMany(Entity::class, 'elements_entity_properties')
@@ -69,7 +73,7 @@ class Property extends Model
                 $type = PropertyType::JSON;
                 break;
             case PropertyType::RELATION:
-                $type = PropertyType::INTEGER;
+                $type = PropertyType::UNSIGNED_INTEGER;
         }
 
         return sprintf('%s_value', $type);

@@ -27,6 +27,8 @@ class Elements
     protected $elementAliases = [];
 
     /**
+     * @throws ElementClassInvalidException
+     * @throws Exceptions\Property\PropertyKeyInvalidException
      * @throws TablesMissingException
      */
     public function install()
