@@ -3,7 +3,6 @@
 namespace Click\Elements\Concerns\Builder;
 
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Element;
 use Click\Elements\Models\Property;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
 
@@ -67,7 +66,7 @@ trait QueriesProperties
             if (is_array($value)) {
                 $this->whereArrayProperty($query, $operator, $value);
             } else {
-                $query->where($propertyModel->pivotColumnKey(), $value ? $operator : '=', $value ?: $operator);
+                $query->where($propertyModel->getPivotColumnKey(), $value ? $operator : '=', $value ?: $operator);
             }
         });
     }

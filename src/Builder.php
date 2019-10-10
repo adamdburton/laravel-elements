@@ -10,17 +10,15 @@ use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException as ElementNotRegisteredExceptionAlias;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
-use Click\Elements\Exceptions\ElementsNotInstalledException as ElementsNotInstalledExceptionAlias;
 use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Models\Entity;
 use Closure;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 /**
  * Element query builder
@@ -58,108 +56,47 @@ class Builder
      * @param $name
      * @param $arguments
      * @return Builder|mixed
-     * @throws ElementNotRegisteredExceptionAlias
-     * @throws ElementsNotInstalledExceptionAlias
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
      */
     public function __call($name, $arguments)
     {
-        if ($this->element->hasScope($name)) {
-            $this->element->applyScope($name, $this->query(), $arguments);
-
-            return $this;
-        }
-
-        if ($this->element->hasRelation($name)) {
-            return $this->getRelationQuery($name);
+        if ($this->element->hasScope($name) ||
+            $this->element->hasRelation($name)) {
+            return $this->applyCallback($name, $arguments);
         }
 
         throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
     }
 
     /**
-     * @return bool
+     * @param $name
+     * @param $arguments
+     * @return $this|Builder
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
-    public function exists()
+    protected function applyCallback($name, $arguments)
     {
-        return $this->query()->exists();
-    }
-
-    /**
-     * @return Element|null
-     */
-    public function first()
-    {
-        $element = $this->query()->first();
-
-        if (!$element) {
-            return null;
+        if ($this->element->hasScope($name)) {
+            $this->element->applyScope($name, $this, $arguments);
         }
 
-        return $this->mapIntoElement($element);
-    }
-
-    /**
-     * @return string
-     */
-    public function toSql()
-    {
-        return $this->query()->toSql();
-    }
-
-    /**
-     * @return \Click\Elements\Collection
-     */
-    public function get()
-    {
-        return $this->mapIntoElements($this->query()->get());
-    }
-
-    /**
-     * @param $primaryKey
-     * @return Element
-     */
-    public function find($primaryKey)
-    {
-        return $this->mapIntoElement($this->query()->find($primaryKey));
-    }
-
-    /**
-     * @param Model $element
-     * @return Element
-     */
-    protected function mapIntoElement(Model $element)
-    {
-        return $element->toElement();
-    }
-
-    /**
-     * @param $primaryKeys
-     * @return \Click\Elements\Collection
-     */
-    public function findMany($primaryKeys)
-    {
-        return $this->mapIntoElements($this->query()->findMany($primaryKeys));
-    }
-
-    /**
-     * @return Eloquent
-     */
-    public function query()
-    {
-        if (!$this->builder) {
-            $this->builder = Entity::query()->where('type', $this->element->getAlias());
+        if ($this->element->hasRelation($name)) {
+            return $this->getRelationQuery($name);
         }
 
-        return $this->builder;
+        return $this;
     }
 
     /**
      * @param string $relation
      * @return Builder
-     * @throws ElementNotRegisteredExceptionAlias
-     * @throws ElementsNotInstalledExceptionAlias
+     * @throws ElementNotRegisteredException
      * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function getRelationQuery(string $relation)
     {
@@ -177,8 +114,8 @@ class Builder
      * @param string $property
      * @return PropertyDefinition|null
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     * @throws Exceptions\Property\PropertyNotRegisteredException
+     * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
      */
     protected function getPropertyDefinition(string $property)
     {
@@ -188,11 +125,80 @@ class Builder
     /**
      * @return ElementDefinition
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws BindingResolutionException
      */
     public function getElementDefinition()
     {
         return elements()->getElementDefinition($this->element->getAlias());
+    }
+
+    /**
+     * @return bool
+     */
+    public function exists()
+    {
+        return $this->query()->exists();
+    }
+
+    /**
+     * @return Eloquent
+     */
+    public function query()
+    {
+        if (!$this->builder) {
+            $this->builder = Entity::query()->where('type', $this->element->getAlias());
+        }
+
+        return $this->builder;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function all()
+    {
+        return $this->element->newQuery()->get();
+    }
+
+    /**
+     * @return Collection
+     */
+    public function get()
+    {
+        return $this->mapIntoElements($this->query()->get());
+    }
+
+    /**
+     * @return string
+     */
+    public function toSql()
+    {
+        return $this->query()->toSql();
+    }
+
+    /**
+     * @param $primaryKey
+     * @return Element
+     */
+    public function find($primaryKey)
+    {
+        $this->query()->whereKey($primaryKey);
+
+        return $this->first();
+    }
+
+    /**
+     * @return Element|null
+     */
+    public function first()
+    {
+        $element = $this->query()->first();
+
+        if (!$element) {
+            return null;
+        }
+
+        return $this->mapIntoElement($element);
     }
 
     /**
@@ -238,8 +244,8 @@ class Builder
      * @param array $attributes
      * @return Element
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws ElementNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
     public function createRaw(array $attributes)
     {
@@ -250,12 +256,12 @@ class Builder
 
     /**
      * @param array $attributes
-     * @return void
+     * @return Element
+     * @throws ElementNotInstalledException
      * @throws Exceptions\Property\PropertyValidationFailed
      * @throws Exceptions\Property\PropertyValueInvalidException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws ElementNotInstalledException
      * @throws PropertyNotRegisteredException
      */
     public function update(array $attributes)
@@ -271,22 +277,24 @@ class Builder
 
         // Updated the entity
 
-        $this->updateEntity($entity, $attributes);
+        $this->updateEntity($entity, $this->element->getRawAttributes());
 
         // Return a new Element composed from the updated entity
 
-        $this->element;
+        return $this->element->setMeta($entity->getMeta());
     }
 
     /**
      * @param array $attributes
      * @return Element
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws ElementNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
     public function updateRaw(array $attributes)
     {
+        $this->element->setRawAttributes($attributes);
+
         $entity = $this->element->getEntity();
 
         $this->updateEntity($entity, $attributes);
@@ -308,9 +316,9 @@ class Builder
     /**
      * @param string $property
      * @return Models\Property
+     * @throws BindingResolutionException
      * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotInstalledException
      */
     protected function getPropertyModel(string $property)
@@ -319,23 +327,29 @@ class Builder
     }
 
     /**
-     * @param EloquentCollection $models
+     * @param Collection $models
      * @return Element[]
+     * @throws BindingResolutionException
+     * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
-    protected function getWiths(EloquentCollection $models)
+    protected function getWiths(Collection $models)
     {
-        $properties = $this->getElementDefinition()->getPropertyDefinitions();
+        $propertyDefinitions = $this->getElementDefinition()->getPropertyDefinitions();
+        $propertyModels = $this->getElementDefinition()->getPropertyModels();
 
-        return collect($this->withs)->map(function ($a, $b) use ($models, $properties) {
+        return collect($this->withs)->map(function ($a, $b) use ($models, $propertyDefinitions, $propertyModels) {
             $key = $a instanceof Closure ? $b : $a;
             $callback = $a instanceof Closure ? $a : null;
 
-            $property = $properties[$key];
-            $primaryKeys = $models->pluck($key);
+            $propertyDefinition = $propertyDefinitions[$key];
+            $propertyModel = $propertyModels[$key];
 
-            $query = elements()->getElementDefinition($property->getMeta('elementType'))->query();
+            $primaryKeys = $models->map(function ($model) use ($propertyModel) {
+                return $model->properties->pluck('pivot.' . $propertyModel->getPivotColumnKey());
+            })->flatten()->all();
+
+            $query = elements()->getElementDefinition($propertyDefinition->getMeta('elementType'))->query();
 
             if ($callback) {
                 $callback($query);
@@ -343,5 +357,14 @@ class Builder
 
             return $query->findMany($primaryKeys);
         })->flatten()->keyBy('meta.id')->all();
+    }
+
+    /**
+     * @param $primaryKeys
+     * @return Collection
+     */
+    public function findMany($primaryKeys)
+    {
+        return $this->mapIntoElements($this->query()->findMany($primaryKeys));
     }
 }

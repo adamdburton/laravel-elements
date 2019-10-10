@@ -22,6 +22,7 @@ class PlainElement extends Element
         $schema->string('string');
         $schema->boolean('boolean');
         $schema->integer('integer');
+        $schema->unsignedInteger('unsigned_integer');
         $schema->double('double');
         $schema->text('text');
         $schema->array('array');

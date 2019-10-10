@@ -5,7 +5,6 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\PropertySchema;
-use Click\Elements\Types\RelationType;
 
 /**
  * Property definition container
@@ -49,14 +48,6 @@ class PropertyDefinition implements DefinitionContract
     }
 
     /**
-     * @return ElementDefinition
-     */
-    public function getElementDefinition()
-    {
-        return $this->elementDefinition;
-    }
-
-    /**
      * @return array
      */
     public function toJson()
@@ -94,18 +85,6 @@ class PropertyDefinition implements DefinitionContract
         $meta = $this->schema->getSchema()['meta'];
 
         return $key ? ($meta[$key] ?? $default) : $meta;
-    }
-
-    public function getRelations($value)
-    {
-        $relationType = $this->getMeta('relationType');
-
-        switch ($relationType) {
-            case RelationType::BELONGS_TO:
-            case RelationType::BELONGS_TO_MANY:
-                return $value;
-                break;
-        }
     }
 
     /**

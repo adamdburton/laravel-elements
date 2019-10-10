@@ -6,9 +6,6 @@ use Click\Elements\Exceptions\Element\ElementClassInvalidException;
 use Click\Elements\Tests\Assets\NotAnElement;
 use Click\Elements\Tests\TestCase;
 
-/**
- * @covers \Click\Elements\Element
- */
 class ElementClassInvalidExceptionTest extends TestCase
 {
     public function test_exception()

@@ -2,7 +2,6 @@
 
 namespace Click\Elements\Pivots;
 
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
@@ -29,22 +28,4 @@ class EntityProperty extends Pivot
         'text_value' => 'string',
         'json_value' => 'array'
     ];
-
-    // Relationships
-
-    /**
-     * @return BelongsTo
-     */
-    public function entity()
-    {
-        return $this->belongsTo(Entity::class);
-    }
-
-    /**
-     * @return BelongsTo
-     */
-    public function property()
-    {
-        return $this->belongsTo(Property::class);
-    }
 }

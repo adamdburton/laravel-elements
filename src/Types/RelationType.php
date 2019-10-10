@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Types;
 
-use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
+use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Type;
 
 /**
@@ -15,12 +15,12 @@ class RelationType extends Type
 
     /**
      * @param string $type
-     * @throws ManyRelationInvalidException
+     * @throws RelationTypeNotValidException
      */
     public static function validateValue($type)
     {
         if (!in_array($type, static::getTypes())) {
-            throw new ManyRelationInvalidException($type);
+            throw new RelationTypeNotValidException($type);
         }
     }
 

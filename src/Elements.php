@@ -6,9 +6,7 @@ use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\Element\ElementClassInvalidException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\TablesMissingException;
 use Click\Elements\Schemas\ElementSchema;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -28,49 +26,26 @@ class Elements
 
     /**
      * @throws ElementClassInvalidException
-     * @throws Exceptions\Property\PropertyKeyInvalidException
-     * @throws TablesMissingException
      * @throws Exceptions\Element\ElementNotInstalledException
      */
     public function install()
     {
-        $this->checkTablesExist();
-
         Log::debug('Registering and installing ElementType element.');
 
         $this->register(ElementType::class)->install();
-
-        foreach ($this->getDefinitions() as $definition) {
-            Log::debug('Installing registered element.', ['element' => $definition->getClass()]);
-
-            if (!$definition->isInstalled()) {
-                $definition->install();
-            }
-        }
-    }
-
-    /**
-     * @throws TablesMissingException
-     */
-    protected function checkTablesExist()
-    {
-        $hasRun = DB::table('migrations')->where('migration', '2019_09_01_082218_create_entities_table')->exists();
-
-        if (!$hasRun) {
-            throw new TablesMissingException();
-        }
     }
 
     /**
      * @param string $class
      * @return ElementDefinition
      * @throws ElementClassInvalidException
-     * @throws Exceptions\Property\PropertyKeyInvalidException
+     * @throws Exceptions\Element\ElementNotInstalledException
      */
     public function register(string $class)
     {
         $this->validateClass($class);
 
+        /** @var Element $element */
         $element = new $class;
         $element->getDefinition($schema = new ElementSchema());
 
@@ -96,33 +71,17 @@ class Elements
     }
 
     /**
-     * @return ElementDefinition[]
-     */
-    protected function getDefinitions()
-    {
-        return $this->elementDefinitions;
-    }
-
-    /**
-     * @return bool
-     * @throws ElementNotRegisteredException
-     * @throws TablesMissingException
-     */
-    public function isInstalled()
-    {
-        return $this->checkTablesExist() && $this->getElementDefinition('elementType') !== null;
-    }
-
-    /**
      * @param $type
-     * @return ElementDefinition
+     * @param array $attributes
+     * @param array $meta
+     * @return Element
      * @throws ElementNotRegisteredException
      */
-    public function getElementDefinition(string $type)
+    public function factory($type, $attributes = null, $meta = null)
     {
-        $type = $this->resolveType($type);
+        $this->resolveType($type);
 
-        return $this->elementDefinitions[$type];
+        return $this->getElementDefinition($type)->factory($attributes, $meta);
     }
 
     /**
@@ -154,17 +113,14 @@ class Elements
 
     /**
      * @param $type
-     * @param array $attributes
-     * @param array $meta
-     * @param null $relations
-     * @return Element
+     * @return ElementDefinition
      * @throws ElementNotRegisteredException
      */
-    public function factory($type, $attributes = null, $meta = null, $relations = null)
+    public function getElementDefinition(string $type)
     {
-        $this->resolveType($type);
+        $type = $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->factory($attributes, $meta, $relations);
+        return $this->elementDefinitions[$type];
     }
 
     /**

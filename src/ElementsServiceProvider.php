@@ -6,7 +6,6 @@ use Click\Elements\Commands\InstallElements;
 use Click\Elements\Commands\ListElements;
 use Click\Elements\Commands\MakeElement;
 use Click\Elements\Events\ModelSaved;
-use Click\Elements\Facades\Elements as ElementsFacade;
 use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
@@ -30,15 +29,20 @@ class ElementsServiceProvider extends ServiceProvider
      *
      * @return void
      * @throws BindingResolutionException
+     * @throws Exceptions\Element\ElementClassInvalidException
+     * @throws Exceptions\Element\ElementNotInstalledException
+     * @throws Exceptions\ElementsNotInstalledException
+     * @throws Exceptions\Property\PropertyKeyInvalidException
+     * @throws Exceptions\TablesMissingException
      */
     public function boot()
     {
         $this->bootListeners();
         $this->bootObservers();
 
-        if (config('elements.auto_install')) {
-            ElementsFacade::install();
-        }
+//        if (config('elements.auto_install')) {
+//            elements()->install();
+//        }
 
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();

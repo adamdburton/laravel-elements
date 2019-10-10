@@ -11,8 +11,8 @@ use Click\Elements\Models\Entity;
 use Click\Elements\Models\Property;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
-use Illuminate\Database\Eloquent\Collection as BaseCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection as BaseCollection;
 
 /**
  * Trait QueriesRelatedElements
@@ -22,6 +22,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 trait InteractsWithModels
 {
+    /**
+     * @param Model $element
+     * @return Element
+     */
+    protected function mapIntoElement(Model $element)
+    {
+        return $this->mapIntoElements(collect([$element]))->first();
+    }
+
     /**
      * @param BaseCollection $models
      * @return Collection
@@ -72,26 +81,26 @@ trait InteractsWithModels
 
     /**
      * @param Entity $entity
-     * @param PropertyDefinition $property
+     * @param PropertyDefinition $definition
      * @param Property $model
      * @param $attribute
      */
-    protected function setEntityAttribute(Entity $entity, PropertyDefinition $property, Property $model, $attribute)
+    protected function setEntityAttribute(Entity $entity, PropertyDefinition $definition, Property $model, $attribute)
     {
-        $relationType = $property->getMeta('relationType');
+        $relationType = $definition->getMeta('relationType');
 
-        if ($property->getType() === PropertyType::RELATION && $relationType === RelationType::MANY) {
+        if ($definition->getType() === PropertyType::RELATION && $relationType === RelationType::MANY) {
             if (!$entity->wasRecentlyCreated) {
                 $entity->properties()->detach($model->id);
             }
 
             foreach ($attribute as $item) {
-                $meta = [$model->pivotColumnKey() => $item];
+                $meta = [$model->getPivotColumnKey() => $item];
 
                 $entity->properties()->attach($model->id, $meta);
             }
         } else {
-            $meta = [$model->pivotColumnKey() => $attribute];
+            $meta = [$model->getPivotColumnKey() => $attribute];
 
             if (!$entity->wasRecentlyCreated) {
                 $entity->properties()->updateExistingPivot($model->id, $meta);

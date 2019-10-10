@@ -4,7 +4,7 @@ namespace Click\Elements\Schemas;
 
 use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
-use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
+use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Schema;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
@@ -50,6 +50,17 @@ class ElementSchema extends Schema
         $schema = $schema ?: PropertySchema::class;
 
         return $this->schema[$key] = new $schema($key, $type);
+    }
+
+    /**
+     * @param string $key
+     * @throws PropertyKeyInvalidException
+     */
+    protected function validateKey(string $key)
+    {
+        if (!preg_match('/^_?\\w*$/', $key)) {
+            throw new PropertyKeyInvalidException($key);
+        }
     }
 
     /**
@@ -132,45 +143,19 @@ class ElementSchema extends Schema
     /**
      * @param $key
      * @param string $elementAlias
-     * @return PropertySchema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
-     * @throws ManyRelationInvalidException
-     */
-    public function belongsTo($key, string $elementAlias)
-    {
-        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
-    }
-
-    /**
-     * @param $key
-     * @param string $elementAlias
      * @param string $relationType
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
-     * @throws ManyRelationInvalidException
      * @throws PropertyAlreadyDefinedException
+     * @throws RelationTypeNotValidException
      */
     public function relation($key, string $elementAlias, string $relationType)
     {
         RelationType::validateValue($relationType);
 
-        return $this->add($key, PropertyType::RELATION)
+        return $this->add($key, PropertyType::RELATION, RelationPropertySchema::class)
             ->elementType($elementAlias)
             ->relationType($relationType);
-    }
-
-    /**
-     * @param $key
-     * @param string $elementAlias
-     * @return PropertySchema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
-     * @throws ManyRelationInvalidException
-     */
-    public function belongsToMany($key, string $elementAlias)
-    {
-        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO_MANY);
     }
 
     /**

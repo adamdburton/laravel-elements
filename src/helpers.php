@@ -2,20 +2,17 @@
 
 use Click\Elements\Elements;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
 if (!function_exists('elements')) {
     /**
      * @return Elements
-     * @throws ElementsNotInstalledException
+     * @throws BindingResolutionException
      */
     function elements()
     {
-        try {
-            return app()->make(Elements::class);
-        } catch (BindingResolutionException $e) {
-            throw new ElementsNotInstalledException();
-        }
+        return Container::getInstance()->make(Elements::class);
     }
 }
 

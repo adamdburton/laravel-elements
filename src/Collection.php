@@ -4,18 +4,32 @@ namespace Click\Elements;
 
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Models\Entity;
-use Illuminate\Database\Eloquent\Collection as Eloquent;
+use Illuminate\Support\Collection as BaseCollection;
 
 /**
  * Class Collection
  */
-class Collection extends Eloquent
+class Collection extends BaseCollection
 {
     protected $elementType;
 
-    public function __construct(Eloquent $items, array $relations = null)
+    public function __construct(BaseCollection $items, array $relations = null)
     {
         parent::__construct($this->toElements($items, $relations));
+    }
+
+    /**
+     * Converts a collection of Entity models into a collection of Elements
+     *
+     * @param BaseCollection $items
+     * @param array|null $relations
+     * @return Element[]
+     */
+    protected function toElements(BaseCollection $items, array $relations = null)
+    {
+        return $items->map(function (Entity $model) use ($relations) {
+            return $model->toElement();
+        })->all();
     }
 
     /**
@@ -29,28 +43,10 @@ class Collection extends Eloquent
     }
 
     /**
-     * Converts a collection of Entity models into a collection of Elements
-     *
-     * @param Eloquent $items
-     * @param array|null $relations
-     * @return Element[]
-     */
-    protected function toElements(Eloquent $items, array $relations = null)
-    {
-        return $items->map(function (Entity $model) use ($relations) {
-            if ($relations) {
-                dd($relations);
-            }
-
-            return $model->toElement();
-        })->all();
-    }
-
-    /**
      * Get the first item from the collection passing the given truth test.
      *
-     * @param  callable|null  $callback
-     * @param  mixed  $default
+     * @param callable|null $callback
+     * @param mixed $default
      * @return Element
      */
     public function first(callable $callback = null, $default = null)

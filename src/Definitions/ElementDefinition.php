@@ -151,10 +151,9 @@ class ElementDefinition implements DefinitionContract
     /**
      * @param null $attributes
      * @param null $meta
-     * @param null $relations
      * @return Element
      */
-    public function factory($attributes = null, $meta = null, $relations = null)
+    public function factory($attributes = null, $meta = null)
     {
         $class = $this->getClass();
 
@@ -163,10 +162,6 @@ class ElementDefinition implements DefinitionContract
 
         if ($meta) {
             $element->setMeta($meta);
-        }
-
-        if ($relations) {
-            $element->setRelations($relations);
         }
 
         return $element;
@@ -209,14 +204,20 @@ class ElementDefinition implements DefinitionContract
     }
 
     /**
-     * @param $property
+     * @param string $property
      * @return Property
      * @throws ElementNotInstalledException
      * @throws PropertyNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
-    public function getPropertyModel($property)
+    public function getPropertyModel(string $property)
     {
+        $propertyDefinitions = $this->getPropertyDefinitions();
         $propertyModels = $this->getPropertyModels();
+
+        if(!isset($propertyDefinitions[$property])) {
+            throw new PropertyNotRegisteredException($property);
+        }
 
         if (!isset($propertyModels[$property])) {
             throw new PropertyNotInstalledException($property);

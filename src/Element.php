@@ -12,6 +12,7 @@ use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Models\Entity;
+use Closure;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
@@ -32,6 +33,9 @@ use Illuminate\Support\Traits\ForwardsCalls;
  *
  * @method static Builder where($property, $operator = '=', $value = null)
  * @see Builder::where()
+ *
+ * @method static Builder whereHas($property, Closure $callback)
+ * @see Builder::whereHas()
  *
  */
 abstract class Element implements ElementContract
@@ -126,7 +130,7 @@ abstract class Element implements ElementContract
     /**
      * @return Builder
      */
-    protected function newQuery()
+    public function newQuery()
     {
         return new Builder($this);
     }
@@ -155,14 +159,6 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return Element[]
-     */
-    public function all()
-    {
-        return $this->query()->get();
-    }
-
-    /**
      * @return array
      * @throws ElementNotRegisteredException
      * @throws ElementsNotInstalledException
@@ -172,7 +168,7 @@ abstract class Element implements ElementContract
         return [
             'meta' => $this->getMeta(),
             'attributes' => $this->getAttributes(),
-            'properties' => collect($this->getElementDefinition()->getPropertyDefinitions())->map->toJson()
+            'properties' => collect($this->getElementDefinition()->getPropertyDefinitions())->map->toJson()->all()
         ];
     }
 

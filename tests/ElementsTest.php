@@ -5,6 +5,7 @@ namespace Click\Elements\Tests;
 use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Tests\Assets\PlainElement;
+use Click\Elements\Tests\Assets\RelatedElement;
 use Click\Elements\Tests\Assets\ValidationElement;
 
 class ElementsTest extends TestCase
@@ -29,19 +30,16 @@ class ElementsTest extends TestCase
         ValidationElement::create(['string' => 123]);
     }
 
-//    public function test_validation()
-//    {
-//        $elementType = $this->elements->register(PlainElement::class)->install();
-//
-//        $this->expectException(ElementValidationFailed::class);
-//
-//        PlainElement::create([
-//            'string' => []
-//        ]);
-//    }
-//
-//    public function test_builder_where()
-//    {
-//        $this->elements->register(ValidationElement::class)->install();
-//    }
+    public function test_get_element_definitions()
+    {
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+        $this->elements->register(ValidationElement::class)->install();
+
+        $definitions = $this->elements->getElementDefinitions();
+
+        // One extra for 'elementType' Element Type ;)
+
+        $this->assertEquals(4, count($definitions));
+    }
 }

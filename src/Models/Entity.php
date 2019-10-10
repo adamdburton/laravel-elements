@@ -5,12 +5,12 @@ namespace Click\Elements\Models;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\Scopes\ElementScope;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -89,8 +89,8 @@ class Entity extends Model
     /**
      * @return Element
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function toElement()
     {
@@ -102,7 +102,7 @@ class Entity extends Model
 
         foreach ($this->getProperties() as $property) {
             $key = $property->key;
-            $column = $property->pivotColumnKey();
+            $column = $property->getPivotColumnKey();
 
             if ($this->isManyRelationProperty($key)) {
                 if (!isset($manyRelations[$key])) {
@@ -130,6 +130,42 @@ class Entity extends Model
     }
 
     /**
+     * @return Property[]
+     */
+    protected function getProperties()
+    {
+        return $this->properties->keyBy('key')->all();
+    }
+
+    /**
+     * @param string $property
+     * @return bool
+     * @throws BindingResolutionException
+     * @throws ElementNotRegisteredException
+     * @throws PropertyNotRegisteredException
+     */
+    protected function isManyRelationProperty(string $property)
+    {
+        $definition = $this->getElementDefinition()->getPropertyDefinition($property);
+
+        if ($definition->getType() !== PropertyType::RELATION) {
+            return false;
+        }
+
+        return $definition->getMeta('relationType') === RelationType::MANY;
+    }
+
+    /**
+     * @return ElementDefinition
+     * @throws BindingResolutionException
+     * @throws ElementNotRegisteredException
+     */
+    protected function getElementDefinition()
+    {
+        return elements()->getElementDefinition($this->type);
+    }
+
+    /**
      * @return array
      */
     public function getMeta()
@@ -149,41 +185,5 @@ class Entity extends Model
     public function getProperty(string $property)
     {
         return $this->properties->where('property', $property)->first();
-    }
-
-    /**
-     * @return Property[]
-     */
-    protected function getProperties()
-    {
-        return $this->properties->keyBy('key')->all();
-    }
-
-    /**
-     * @return ElementDefinition
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    protected function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->type);
-    }
-
-    /**
-     * @param string $property
-     * @return bool
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     * @throws PropertyNotRegisteredException
-     */
-    protected function isManyRelationProperty(string $property)
-    {
-        $definition = $this->getElementDefinition()->getPropertyDefinition($property);
-
-        if ($definition->getType() !== PropertyType::RELATION) {
-            return false;
-        }
-
-        return $definition->getMeta('relationType') === RelationType::MANY;
     }
 }

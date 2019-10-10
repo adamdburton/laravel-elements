@@ -31,50 +31,12 @@ class Property extends Model
      */
     protected $fillable = ['element', 'key', 'type'];
 
-    // Relationships
-
-    /**
-     * @return BelongsToMany
-     */
-    public function elements()
-    {
-        return $this->belongsToMany(Entity::class, 'elements_entity_properties')
-            ->using(EntityProperty::class)
-            ->withPivot(
-                'boolean_value',
-                'integer_value',
-                'unsigned_integer_value',
-                'double_value',
-                'string_value',
-                'text_value',
-                'json_value',
-                'timestamp_value'
-            );
-    }
-
-    // Scopes
-
-    public function scopeElement($query, string $element)
-    {
-        $query->where('element', $element);
-    }
-
-    public function scopeKey($query, string $property)
-    {
-        $query->where('key', $property);
-    }
-
-    public function scopeType($query, string $type)
-    {
-        $query->where('type', $type);
-    }
-
     // Functions
 
     /**
      * @return string
      */
-    public function pivotColumnKey()
+    public function getPivotColumnKey()
     {
         $type = $this->type;
 

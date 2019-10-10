@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Concerns\Element;
 
-use Illuminate\Database\Eloquent\Builder;
+use Click\Elements\Builder;
 use Illuminate\Support\Str;
 
 /**
@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
  */
 trait HasScopes
 {
+
     /**
      * @param $key
      * @return bool
@@ -27,8 +28,8 @@ trait HasScopes
      */
     public function applyScope($key, Builder $query, $arguments = [])
     {
-        array_unshift($arguments, $query); // Add the query as the first argument
+        array_unshift($arguments, $query);
 
-        return $this->{'scope' . Str::studly($key)}($arguments);
+        return $this->{'scope' . Str::studly($key)}(...$arguments);
     }
 }

@@ -6,7 +6,7 @@ use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Exceptions\Property\PropertyValidationFailed;
 use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
@@ -14,7 +14,7 @@ use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
-use Exception;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -44,8 +44,10 @@ trait HasTypedProperties
     /**
      * @param $key
      * @return null
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws PropertyKeyInvalidException
+     * @throws PropertyNotRegisteredException
      */
     public function __get($key)
     {
@@ -59,35 +61,19 @@ trait HasTypedProperties
      * @throws PropertyValidationFailed
      * @throws PropertyValueInvalidException
      * @throws SingleRelationInvalidException
+     * @throws PropertyNotRegisteredException
      */
     public function __set($key, $value)
     {
         $this->setAttribute($key, $value);
     }
 
-//    /**
-//     * @param $name
-//     * @param $arguments
-//     */
-//    public function __call($name, $arguments)
-//    {
-//        /** @var PropertyDefinition[] $properties */
-//        $properties = $this->getElementDefinition()->getProperties();
-//
-//        if (isset($properties[$name])) {
-//            $property = $properties[$name];
-//
-//            if($property->getType() === PropertyType::RELATION) {
-//                return elements()->getElementDefinition($property->getMeta('elementType'));
-//            }
-//        }
-//    }
-
     /**
      * @param $key
      * @return mixed
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws PropertyKeyInvalidException
      * @throws PropertyNotRegisteredException
      */
     public function getAttribute($key)
@@ -98,6 +84,8 @@ trait HasTypedProperties
             $this->hasRelation($key)) {
             return $this->getAttributeValue($key);
         }
+
+        throw new PropertyKeyInvalidException($key);
     }
 
     /**
@@ -139,8 +127,8 @@ trait HasTypedProperties
     /**
      * @param string $key
      * @return mixed
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
      */
     public function getAttributeValue($key)
@@ -163,8 +151,8 @@ trait HasTypedProperties
     /**
      * @param $key
      * @return Element|Collection
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
      */
     protected function getRelation($key)
@@ -183,8 +171,8 @@ trait HasTypedProperties
      * @param string $key
      * @param PropertyDefinition $definition
      * @return Element
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
     protected function getSingleRelation(string $key, PropertyDefinition $definition)
     {
@@ -208,7 +196,7 @@ trait HasTypedProperties
      * @param PropertyDefinition $definition
      * @return Element[]|null
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws BindingResolutionException
      */
     protected function getManyRelations(string $key, PropertyDefinition $definition)
     {
@@ -417,6 +405,7 @@ trait HasTypedProperties
      * @return HasTypedProperties
      * @throws PropertyValidationFailed
      * @throws PropertyValueInvalidException
+     * @throws PropertyNotRegisteredException
      */
     public function setAttributeValue($key, $value)
     {
@@ -432,6 +421,7 @@ trait HasTypedProperties
      * @param $value
      * @throws PropertyValidationFailed
      * @throws PropertyValueInvalidException
+     * @throws PropertyNotRegisteredException
      */
     public function validatePropertyValue(string $key, $value)
     {
@@ -467,28 +457,12 @@ trait HasTypedProperties
     }
 
     /**
-     * @param $relations
-     * @return HasTypedProperties
-     * @throws Exception
-     */
-    public function setRelations($relations)
-    {
-        if ($relations) {
-            throw new Exception('no');
-            dd($relations);
-            $this->relations = $relations;
-        }
-
-        return $this;
-    }
-
-    /**
      * @return array
      */
     public function getAttributes()
     {
-        return collect($this->properties)->keys()->map(function ($key) {
-            return $this->getAttribute($key);
+        return collect($this->attributes)->mapWithKeys(function ($key) {
+            return [$key => $this->getAttribute($key)];
         })->all();
     }
 
@@ -524,37 +498,5 @@ trait HasTypedProperties
     public function setRawAttributes($attributes)
     {
         $this->attributes = $attributes;
-    }
-
-    /**
-     * @param $key
-     * @return bool
-     */
-    protected function isRelation($key)
-    {
-        /** @var PropertyDefinition $property */
-        $property = $this->getElementDefinition()->getProperty($key);
-
-        return $property->getType() === PropertyType::RELATION;
-    }
-
-    /**
-     * @param $key
-     * @return null
-     */
-    protected function getLoadedRelation($key)
-    {
-        return $this->relations[$key] ?? null;
-    }
-
-    /**
-     * @param array $attributes
-     * @throws PropertyValidationFailed
-     */
-    protected function validateAttributes(array $attributes)
-    {
-        foreach ($attributes as $key => $value) {
-            $this->validateAttribute($key, $value);
-        }
     }
 }

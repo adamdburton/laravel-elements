@@ -2,8 +2,10 @@
 
 namespace Click\Elements\Tests;
 
+use Click\Elements\Commands\InstallElements;
 use Click\Elements\Elements;
 use Click\Elements\ElementsServiceProvider;
+use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 
 /**
@@ -26,22 +28,34 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->elements = app(Elements::class);
-        
-        $this->artisan('migrate:fresh', [
-            '--database' => 'mysql',
-            '--realpath' => realpath(__DIR__ . '/../database/migrations'),
-        ]);
 
         if ($this->elementsInstalled) {
-            $this->artisan('elements:install');
+            $this->artisan('migrate:fresh', [
+                '--database' => 'mysql',
+                '--realpath' => realpath(__DIR__ . '/../database/migrations'),
+            ]);
+
+            $this->artisan(InstallElements::class);
         }
     }
 
+    /**
+     * Get package providers.
+     *
+     * @return array
+     */
     protected function getPackageProviders($app)
     {
         return [ElementsServiceProvider::class];
     }
 
+    /**
+     * Define environment setup.
+     *
+     * @param Application $app
+     *
+     * @return void
+     */
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'mysql');
