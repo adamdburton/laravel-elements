@@ -1,28 +1,42 @@
 stages:
-  - build
+  - setup
   - test
 
-# Cache libraries in between jobs
+image: edbizarro/gitlab-ci-pipeline-php:7.3
+
+services:
+  - name: mysql:5.7
+    alias: mysql
+    command: ["--default-authentication-plugin=mysql_native_password"]
+
+variables:
+  MYSQL_ROOT_PASSWORD: root
+  MYSQL_USER: testing
+  MYSQL_PASSWORD: testing
+  MYSQL_DATABASE: testing
+  DB_HOST: mysql
+
 cache:
   key: ${CI_COMMIT_REF_SLUG}
   paths:
     - vendor/
 
-composer:
-  stage: build
-  image: edbizarro/gitlab-ci-pipeline-php:7.3
+setup:
+  stage: setup
   script:
     - php -v
+    - mysql --version
+    - echo "SHOW tables;"| mysql -u "${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -h"${DB_HOST}" "${MYSQL_DATABASE}"
     - composer install --prefer-dist --no-ansi --no-interaction --no-progress --no-scripts --no-plugins --optimize-autoloader
 
 phpunit:
   stage: test
-  image: edbizarro/gitlab-ci-pipeline-php:7.3
   dependencies:
-    - composer
+    - setup
   script:
     - php -v
-    - ./vendor/bin/phpunit --coverage-clover clover.xml --colors=never --stderr
+    - echo "SHOW tables;"| mysql -u "${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -h"${DB_HOST}" "${MYSQL_DATABASE}"
+    - vendor/bin/phpunit --coverage-clover clover.xml --colors=never
     - php coverage-checker.php clover.xml 40
 
 # phpcs:

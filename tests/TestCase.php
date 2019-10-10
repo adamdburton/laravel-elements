@@ -28,7 +28,7 @@ abstract class TestCase extends BaseTestCase
         $this->elements = app(Elements::class);
         
         $this->artisan('migrate:fresh', [
-            '--database' => 'testbench',
+            '--database' => 'mysql',
             '--realpath' => realpath(__DIR__ . '/../database/migrations'),
         ]);
 
@@ -44,13 +44,13 @@ abstract class TestCase extends BaseTestCase
 
     protected function getEnvironmentSetUp($app)
     {
-        $app['config']->set('database.default', 'testbench');
-        $app['config']->set('database.connections.testbench', [
+        $app['config']->set('database.default', 'mysql');
+        $app['config']->set('database.connections.mysql', [
             'driver' => 'mysql',
-            'host' => 'localhost',
+            'host' => 'mysql',
             'database' => 'testing',
-            'username' => 'root',
-            'password' => '',
+            'username' => 'testing',
+            'password' => 'testing',
             'prefix' => '',
         ]);
     }

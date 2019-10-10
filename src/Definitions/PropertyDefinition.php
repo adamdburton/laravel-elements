@@ -5,7 +5,6 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Models\Property;
 use Click\Elements\Schemas\PropertySchema;
-use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
 
 /**
