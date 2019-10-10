@@ -46,8 +46,11 @@ abstract class TestCase extends BaseTestCase
     {
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
-            'driver' => 'sqlite',
-            'database' => realpath(__DIR__ . '/../database/testing.sqlite'),
+            'driver' => 'mysql',
+            'host' => 'localhost',
+            'database' => 'testing',
+            'username' => 'root',
+            'password' => '',
             'prefix' => '',
         ]);
     }

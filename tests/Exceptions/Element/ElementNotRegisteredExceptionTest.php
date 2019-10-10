@@ -15,6 +15,6 @@ class ElementNotRegisteredExceptionTest extends TestCase
     {
         $this->expectException(ElementNotRegisteredException::class);
 
-        PlainElement::create();
+        PlainElement::create([]);
     }
 }

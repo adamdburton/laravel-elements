@@ -3,6 +3,7 @@
 namespace Click\Elements\Concerns\Builder;
 
 use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Element;
 use Click\Elements\Models\Property;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
 
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder as Eloquent;
  * Trait QueriesRelatedElements
  * @method Property getPropertyModel($key)
  * @method PropertyDefinition getPropertyDefinition($key)
+ * @method Eloquent query()
  */
 trait QueriesProperties
 {
@@ -27,31 +29,14 @@ trait QueriesProperties
         if (substr_count($property, '.') === 1) {
             // e.g. localRelationProperty.foreignProperty = value
 
-            $this->whereRelation($this->query(), $property, $operator, $value);
+            $this->whereRelationProperty($this->query(), $property, $value ? $operator : '=', $value ?: $operator);
         } else {
             // e.g. localProperty = value
 
-            $this->whereProperty($this->query(), $property, $operator, $value);
+            $this->whereProperty($this->query(), $property, $value ? $operator : '=', $value ?: $operator);
         }
 
         return $this;
-    }
-    /**
-     * @param Eloquent $query
-     * @param string $property
-     * @param string $operator
-     * @param $value
-     */
-    protected function whereProperty(Eloquent $query, string $property, $operator = '', $value = null)
-    {
-        /** @var Property $propertyModel */
-        $propertyModel = $this->getPropertyModel($property);
-
-        $query->whereHas('properties', function (Eloquent $query) use ($propertyModel, $operator, $value) {
-            $query
-                ->where('property_id', $propertyModel->id)
-                ->where($propertyModel->pivotColumnKey() . '_value', $value ? $operator : '=', $value ?? $operator);
-        });
     }
 
     /**
@@ -62,15 +47,42 @@ trait QueriesProperties
      */
     protected function whereRelationProperty(Eloquent $query, string $property, $operator, $value)
     {
-        $propertyDefinition = $this->getPropertyDefinition($property);
+        $prefix = explode('.', $property)[0];
+        $property = substr($property, strlen($prefix));
+    }
 
-        $query->whereHas(
-            'relations',
-            function (Eloquent $query) use ($propertyDefinition, $property, $operator, $value) {
-                $query->where('type', $propertyDefinition->getMeta('elementType'));
+    /**
+     * @param Eloquent $query
+     * @param string $property
+     * @param string $operator
+     * @param $value
+     */
+    protected function whereProperty(Eloquent $query, string $property, $operator = '', $value = null)
+    {
+        $propertyModel = $this->getPropertyModel($property);
 
-                $this->whereProperty($query, $property, $operator, $value);
+        $query->whereHas('properties', function (Eloquent $query) use ($propertyModel, $operator, $value) {
+            $query->where('property_id', $propertyModel->id);
+
+            if (is_array($value)) {
+                $this->whereArrayProperty($query, $operator, $value);
+            } else {
+                $query->where($propertyModel->pivotColumnKey(), $value ? $operator : '=', $value ?: $operator);
             }
-        );
+        });
+    }
+
+    /**
+     * @param Eloquent $query
+     * @param string $property
+     * @param string $operator
+     * @param null $value
+     */
+    protected function whereArrayProperty(Eloquent $query, $operator = '', $value = null)
+    {
+        $query->whereRaw(sprintf(
+            'json_value %s cast(? as json)',
+            $value ? $operator : '='
+        ), json_encode($value ?: $operator));
     }
 }

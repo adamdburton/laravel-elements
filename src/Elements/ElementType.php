@@ -3,9 +3,9 @@
 namespace Click\Elements\Elements;
 
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
-use Click\Elements\Types\RelationType;
 
 /**
  * Element for element types
@@ -15,7 +15,7 @@ class ElementType extends Element
     /**
      * @param ElementSchema $schema
      * @throws PropertyKeyInvalidException
-     * @throws \Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException
+     * @throws PropertyAlreadyDefinedException
      */
     public function getDefinition(ElementSchema $schema)
     {

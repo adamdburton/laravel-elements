@@ -21,6 +21,17 @@ class ElementSchema extends Schema
 
     /**
      * @param $key
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     */
+    public function boolean($key)
+    {
+        return $this->add($key, PropertyType::BOOLEAN);
+    }
+
+    /**
+     * @param $key
      * @param $type
      * @param null $schema
      * @return PropertySchema
@@ -39,17 +50,6 @@ class ElementSchema extends Schema
         $schema = $schema ?: PropertySchema::class;
 
         return $this->schema[$key] = new $schema($key, $type);
-    }
-
-    /**
-     * @param $key
-     * @return PropertySchema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
-     */
-    public function boolean($key)
-    {
-        return $this->add($key, PropertyType::BOOLEAN);
     }
 
     /**
@@ -132,6 +132,19 @@ class ElementSchema extends Schema
     /**
      * @param $key
      * @param string $elementAlias
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     * @throws ManyRelationInvalidException
+     */
+    public function belongsTo($key, string $elementAlias)
+    {
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
+    }
+
+    /**
+     * @param $key
+     * @param string $elementAlias
      * @param string $relationType
      * @return PropertySchema
      * @throws PropertyKeyInvalidException
@@ -145,19 +158,6 @@ class ElementSchema extends Schema
         return $this->add($key, PropertyType::RELATION)
             ->elementType($elementAlias)
             ->relationType($relationType);
-    }
-
-    /**
-     * @param $key
-     * @param string $elementAlias
-     * @return PropertySchema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
-     * @throws ManyRelationInvalidException
-     */
-    public function belongsTo($key, string $elementAlias)
-    {
-        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO);
     }
 
     /**

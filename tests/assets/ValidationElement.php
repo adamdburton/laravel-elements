@@ -17,7 +17,7 @@ class ValidationElement extends Element
         $schema->text('text')->validation('required');
         $schema->array('array')->validation('required');
         $schema->json('json')->validation('required');
-        $schema->relation('relation', 'test', RelationType::BELONGS_TO)->validation('required');
+        $schema->relation('relation', 'test', RelationType::SINGLE)->validation('required');
         $schema->timestamp('timestamp')->validation('required');
     }
 }

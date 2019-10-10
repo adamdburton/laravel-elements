@@ -8,7 +8,7 @@ class ManyRelationInvalidException extends Exception
 {
     public function __construct(string $key, string $elementClass, $value)
     {
-        $types = is_array($value) ? array_map(function($value) {
+        $types = is_array($value) ? array_map(function ($value) {
             return gettype($value);
         }, $value) : [$value];
 

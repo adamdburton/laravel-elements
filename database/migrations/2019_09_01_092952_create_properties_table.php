@@ -19,6 +19,8 @@ class CreatePropertiesTable extends Migration
             $table->string('element', 64)->index();
             $table->string('key', 64)->index();
             $table->enum('type', PropertyType::getTypes())->index();
+
+            $table->unique(['element', 'key', 'type'], 'unique_property');
         });
     }
 

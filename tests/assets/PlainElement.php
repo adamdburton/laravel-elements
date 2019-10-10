@@ -3,11 +3,20 @@
 namespace Click\Elements\Tests\Assets;
 
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
+use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 use Click\Elements\Types\RelationType;
 
 class PlainElement extends Element
 {
+    /**
+     * @param ElementSchema $schema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     * @throws ManyRelationInvalidException
+     */
     public function getDefinition(ElementSchema $schema)
     {
         $schema->string('string');
@@ -17,7 +26,7 @@ class PlainElement extends Element
         $schema->text('text');
         $schema->array('array');
         $schema->json('json');
-        $schema->relation('relation', 'test', RelationType::SINGLE);
+        $schema->relation('relation', PlainElement::class, RelationType::SINGLE);
         $schema->timestamp('timestamp');
     }
 }

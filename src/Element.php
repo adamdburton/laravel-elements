@@ -30,6 +30,9 @@ use Illuminate\Support\Traits\ForwardsCalls;
  * @method static Element updateRaw(array $attributes)
  * @see Builder::updateRaw()
  *
+ * @method static Builder where($property, $operator = '=', $value = null)
+ * @see Builder::where()
+ *
  */
 abstract class Element implements ElementContract
 {
@@ -70,9 +73,11 @@ abstract class Element implements ElementContract
     /**
      * @param null $attributes
      * @param bool $raw
+     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Relation\ManyRelationInvalidException
+     * @throws Exceptions\Relation\SingleRelationInvalidException
      * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
-     * @throws Exceptions\Property\PropertyValidationFailed
      */
     public function __construct($attributes = null, $raw = false)
     {
@@ -85,9 +90,11 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
+     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Relation\ManyRelationInvalidException
+     * @throws Exceptions\Relation\SingleRelationInvalidException
      * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
-     * @throws Exceptions\Property\PropertyValidationFailed
      */
     public static function __callStatic($method, $parameters)
     {
@@ -102,16 +109,6 @@ abstract class Element implements ElementContract
     public function __call($method, $parameters)
     {
         return $this->forwardCallTo($this->query(), $method, $parameters);
-    }
-
-    /**
-     * @return ElementDefinition
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    public function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->getAlias());
     }
 
     /**
@@ -132,14 +129,6 @@ abstract class Element implements ElementContract
     protected function newQuery()
     {
         return new Builder($this);
-    }
-
-    /**
-     * @return int
-     */
-    public function getPrimaryKey()
-    {
-        return $this->primaryKey;
     }
 
     /**
@@ -166,14 +155,6 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @return string
-     */
-    public function getAlias()
-    {
-        return $this->aliasName ?: Str::camel(class_basename($this));
-    }
-
-    /**
      * @return Element[]
      */
     public function all()
@@ -183,6 +164,8 @@ abstract class Element implements ElementContract
 
     /**
      * @return array
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
      */
     public function toJson()
     {
@@ -206,10 +189,36 @@ abstract class Element implements ElementContract
     }
 
     /**
+     * @return ElementDefinition
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     */
+    public function getElementDefinition()
+    {
+        return elements()->getElementDefinition($this->getAlias());
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlias()
+    {
+        return $this->aliasName ?: Str::camel(class_basename($this));
+    }
+
+    /**
      * @return Entity
      */
     public function getEntity()
     {
         return Entity::findOrFail($this->getPrimaryKey());
+    }
+
+    /**
+     * @return int
+     */
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
     }
 }

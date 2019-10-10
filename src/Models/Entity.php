@@ -2,15 +2,18 @@
 
 namespace Click\Elements\Models;
 
+use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\Scopes\ElementScope;
+use Click\Elements\Types\PropertyType;
+use Click\Elements\Types\RelationType;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
@@ -55,23 +58,21 @@ class Entity extends Model
                 'double_value',
                 'string_value',
                 'text_value',
-                'json_value'
-            )
-            ->withTimestamps();
+                'json_value',
+                'timestamp_value'
+            );
     }
 
     /**
-     * @return HasManyThrough
+     * @return BelongsToMany
      */
     public function relatedElements()
     {
-        return $this->hasManyThrough(
+        return $this->belongsToMany(
             Entity::class,
-            EntityProperty::class,
+            'elements_entity_properties',
             'entity_id',
-            'id',
-            'unsigned_integer_value',
-            'entity_id'
+            'unsigned_integer_value'
         );
     }
 
@@ -86,29 +87,59 @@ class Entity extends Model
     // Methods
 
     /**
-     * @param string $type
      * @return Element
      * @throws ElementNotRegisteredException
      * @throws ElementsNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
-    public function toElement(string $type)
+    public function toElement()
     {
-        $attributes = $this->properties->mapWithKeys(function (Property $property) {
-            $type = $property->pivotColumnKey();
-            return [$property->key => $property->pivot->$type];
+        // Relationships are stored as rows, so sometimes the same property will come up.
+        // We need to store these to map back as an array later.
+
+        $properties = [];
+        $manyRelations = [];
+
+        foreach ($this->getProperties() as $property) {
+            $key = $property->key;
+            $column = $property->pivotColumnKey();
+
+            if ($this->isManyRelationProperty($key)) {
+                if (!isset($manyRelations[$key])) {
+                    $manyRelations[$key] = [];
+                }
+
+                $manyRelations[$key][] = $property->pivot->$column;
+                $properties[$key] = $manyRelations[$key];
+            } else {
+                $properties[$key] = $property->pivot->$column;
+            }
+        }
+
+        $attributes = collect(array_keys($properties))->mapWithKeys(function ($property) use ($properties) {
+            $value = $properties[$property];
+
+            return [$property => $value];
         })->all();
 
-        $meta = [
+        $meta = $this->getMeta();
+
+        $relations = $this->relationLoaded('relatedElements') ? $this->relatedElements : null;
+
+        return elements()->factory($this->type, $attributes, $meta, $relations);
+    }
+
+    /**
+     * @return array
+     */
+    public function getMeta()
+    {
+        return [
             'id' => $this->id,
             'type' => $this->type,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-
-        $relations = $this->relationLoaded('relatedElements') ? $this->relatedElements : null;
-
-
-        return elements()->factory($type, $attributes, $meta, $relations);
     }
 
     /**
@@ -118,5 +149,41 @@ class Entity extends Model
     public function getProperty(string $property)
     {
         return $this->properties->where('property', $property)->first();
+    }
+
+    /**
+     * @return Property[]
+     */
+    protected function getProperties()
+    {
+        return $this->properties->keyBy('key')->all();
+    }
+
+    /**
+     * @return ElementDefinition
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     */
+    protected function getElementDefinition()
+    {
+        return elements()->getElementDefinition($this->type);
+    }
+
+    /**
+     * @param string $property
+     * @return bool
+     * @throws ElementNotRegisteredException
+     * @throws ElementsNotInstalledException
+     * @throws PropertyNotRegisteredException
+     */
+    protected function isManyRelationProperty(string $property)
+    {
+        $definition = $this->getElementDefinition()->getPropertyDefinition($property);
+
+        if ($definition->getType() !== PropertyType::RELATION) {
+            return false;
+        }
+
+        return $definition->getMeta('relationType') === RelationType::MANY;
     }
 }

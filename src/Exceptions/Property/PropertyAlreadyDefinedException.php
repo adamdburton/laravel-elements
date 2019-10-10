@@ -2,8 +2,6 @@
 
 namespace Click\Elements\Exceptions\Property;
 
-use Click\Elements\Contracts\DefinitionContract;
-use Click\Elements\Definitions\ElementDefinition;
 use Exception;
 
 class PropertyAlreadyDefinedException extends Exception

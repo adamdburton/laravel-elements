@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * Model for storing properties
  * @property int id
  * @property string type
+ * @property string key
+ * @property EntityProperty pivot
  */
 class Property extends Model
 {
@@ -38,8 +40,16 @@ class Property extends Model
     {
         return $this->belongsToMany(Entity::class, 'elements_entity_properties')
             ->using(EntityProperty::class)
-            ->withPivot('bool_value', 'int_value', 'float_value', 'string_value', 'text_value', 'json_value')
-            ->withTimestamps();
+            ->withPivot(
+                'boolean_value',
+                'integer_value',
+                'unsigned_integer_value',
+                'double_value',
+                'string_value',
+                'text_value',
+                'json_value',
+                'timestamp_value'
+            );
     }
 
     // Scopes

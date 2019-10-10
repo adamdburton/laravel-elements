@@ -15,6 +15,6 @@ class PropertyTypeTest extends TestCase
 
     public function test_get_types()
     {
-        $this->assertEquals(9, count(PropertyType::getTypes()));
+        $this->assertEquals(10, count(PropertyType::getTypes()));
     }
 }

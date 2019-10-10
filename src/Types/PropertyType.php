@@ -2,7 +2,6 @@
 
 namespace Click\Elements\Types;
 
-use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Type;
 
 /**
@@ -12,7 +11,7 @@ class PropertyType extends Type
 {
     public const BOOLEAN = 'boolean';
     public const INTEGER = 'integer';
-    public const UNSIGNED_INTEGER = '-integer';
+    public const UNSIGNED_INTEGER = 'unsigned_integer';
     public const DOUBLE = 'double';
     public const STRING = 'string';
     public const TEXT = 'text';
@@ -27,16 +26,16 @@ class PropertyType extends Type
     public static function getTypes()
     {
         return [
-            self::BOOLEAN,
-            self::INTEGER,
-            self::UNSIGNED_INTEGER,
-            self::DOUBLE,
-            self::STRING,
-            self::TEXT,
-            self::JSON,
-            self::ARRAY,
-            self::RELATION,
-            self::TIMESTAMP
+            static::BOOLEAN,
+            static::INTEGER,
+            static::UNSIGNED_INTEGER,
+            static::DOUBLE,
+            static::STRING,
+            static::TEXT,
+            static::JSON,
+            static::ARRAY,
+            static::RELATION,
+            static::TIMESTAMP
         ];
     }
 }

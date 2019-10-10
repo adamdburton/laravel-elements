@@ -17,6 +17,6 @@ class ElementNotInstalledExceptionTest extends TestCase
 
         $this->expectException(ElementNotInstalledException::class);
 
-        PlainElement::create();
+        PlainElement::create([]);
     }
 }

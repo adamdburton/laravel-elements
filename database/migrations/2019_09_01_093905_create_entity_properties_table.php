@@ -18,16 +18,14 @@ class CreateEntityPropertiesTable extends Migration
             $table->unsignedBigInteger('entity_id');
             $table->unsignedBigInteger('property_id');
 
+            $table->unsignedBigInteger('unsigned_integer_value', false)->nullable();
+            $table->bigInteger('integer_value', false)->nullable();
             $table->boolean('boolean_value')->nullable();
-            $table->integer('integer_value', false)->nullable();
-            $table->unsignedInteger('unsigned_integer_value', false)->nullable();
             $table->double('double_value', 8, 2)->nullable();
             $table->string('string_value', 255)->nullable();
             $table->text('text_value')->nullable();
             $table->json('json_value')->nullable();
             $table->timestamp('timestamp_value', 0)->nullable();
-
-            $table->timestamps();
 
             $table->index(['entity_id', 'property_id'], 'fk_index');
             $table->index(['entity_id', 'property_id', 'boolean_value'], 'fk_boolean_index');

@@ -30,6 +30,7 @@ class Elements
      * @throws ElementClassInvalidException
      * @throws Exceptions\Property\PropertyKeyInvalidException
      * @throws TablesMissingException
+     * @throws Exceptions\Element\ElementNotInstalledException
      */
     public function install()
     {
@@ -42,18 +43,10 @@ class Elements
         foreach ($this->getDefinitions() as $definition) {
             Log::debug('Installing registered element.', ['element' => $definition->getClass()]);
 
-            $definition->install();
+            if (!$definition->isInstalled()) {
+                $definition->install();
+            }
         }
-    }
-
-    /**
-     * @return bool
-     * @throws ElementNotRegisteredException
-     * @throws TablesMissingException
-     */
-    public function isInstalled()
-    {
-        return $this->checkTablesExist() && $this->getElementDefinition('elementType') !== null;
     }
 
     /**
@@ -92,6 +85,17 @@ class Elements
     }
 
     /**
+     * @param string $class
+     * @throws ElementClassInvalidException
+     */
+    protected function validateClass(string $class)
+    {
+        if (!is_subclass_of($class, Element::class)) {
+            throw new ElementClassInvalidException($class);
+        }
+    }
+
+    /**
      * @return ElementDefinition[]
      */
     protected function getDefinitions()
@@ -100,18 +104,25 @@ class Elements
     }
 
     /**
+     * @return bool
+     * @throws ElementNotRegisteredException
+     * @throws TablesMissingException
+     */
+    public function isInstalled()
+    {
+        return $this->checkTablesExist() && $this->getElementDefinition('elementType') !== null;
+    }
+
+    /**
      * @param $type
-     * @param array $attributes
-     * @param array $meta
-     * @param null $relations
-     * @return Element
+     * @return ElementDefinition
      * @throws ElementNotRegisteredException
      */
-    public function factory($type, $attributes = null, $meta = null, $relations = null)
+    public function getElementDefinition(string $type)
     {
-        $this->resolveType($type);
+        $type = $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->factory($attributes, $meta, $relations);
+        return $this->elementDefinitions[$type];
     }
 
     /**
@@ -143,14 +154,17 @@ class Elements
 
     /**
      * @param $type
-     * @return ElementDefinition
+     * @param array $attributes
+     * @param array $meta
+     * @param null $relations
+     * @return Element
      * @throws ElementNotRegisteredException
      */
-    public function getElementDefinition(string $type)
+    public function factory($type, $attributes = null, $meta = null, $relations = null)
     {
-        $type = $this->resolveType($type);
+        $this->resolveType($type);
 
-        return $this->elementDefinitions[$type];
+        return $this->getElementDefinition($type)->factory($attributes, $meta, $relations);
     }
 
     /**
@@ -159,16 +173,5 @@ class Elements
     public function getElementDefinitions()
     {
         return $this->elementDefinitions;
-    }
-
-    /**
-     * @param string $class
-     * @throws ElementClassInvalidException
-     */
-    protected function validateClass(string $class)
-    {
-        if (!is_subclass_of($class, Element::class)) {
-            throw new ElementClassInvalidException($class);
-        }
     }
 }

@@ -2,10 +2,7 @@
 
 namespace Click\Elements\Exceptions\Property;
 
-use Click\Elements\Element;
 use Exception;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Support\MessageBag;
 
 class PropertyValidationFailed extends Exception
 {

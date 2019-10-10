@@ -19,7 +19,7 @@ class RelationType extends Type
      */
     public static function validateValue($type)
     {
-        if (!in_array($type, self::getTypes())) {
+        if (!in_array($type, static::getTypes())) {
             throw new ManyRelationInvalidException($type);
         }
     }
@@ -30,8 +30,8 @@ class RelationType extends Type
     public static function getTypes()
     {
         return [
-            self::SINGLE,
-            self::MANY
+            static::SINGLE,
+            static::MANY
         ];
     }
 }

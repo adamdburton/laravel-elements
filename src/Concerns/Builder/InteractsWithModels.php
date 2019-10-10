@@ -2,14 +2,17 @@
 
 namespace Click\Elements\Concerns\Builder;
 
+use Click\Elements\Collection;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Element;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
+use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Models\Entity;
 use Click\Elements\Models\Property;
-use Illuminate\Database\Eloquent\Collection;
+use Click\Elements\Types\PropertyType;
+use Click\Elements\Types\RelationType;
+use Illuminate\Database\Eloquent\Collection as BaseCollection;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Trait QueriesRelatedElements
@@ -20,27 +23,25 @@ use Illuminate\Database\Eloquent\Collection;
 trait InteractsWithModels
 {
     /**
+     * @param BaseCollection $models
+     * @return Collection
+     */
+    protected function mapIntoElements(BaseCollection $models)
+    {
+        $relations = $this->getWiths($models);
+
+        return new Collection($models, $relations);
+    }
+
+    /**
      * @param array $attributes
      * @return Entity
+     * @throws ElementNotInstalledException
      */
     protected function createEntity($attributes = [])
     {
         /** @var Entity $entity */
         $entity = Entity::create(['type' => $this->element->getAlias()]);
-
-        $a = $this->setEntityAttributes($entity, $attributes);
-
-        return $a;
-    }
-
-    /**
-     * @param Entity $entity
-     * @param $attributes
-     * @return Entity
-     */
-    protected function updateEntity(Entity $entity, $attributes)
-    {
-        $entity->touch();
 
         return $this->setEntityAttributes($entity, $attributes);
     }
@@ -49,13 +50,12 @@ trait InteractsWithModels
      * @param Entity $entity
      * @param $attributes
      * @return Entity
+     * @throws ElementNotInstalledException
      */
     protected function setEntityAttributes(Entity $entity, $attributes = [])
     {
         $properties = $this->getElementDefinition()->getPropertyDefinitions();
         $propertyModels = $this->getElementDefinition()->getPropertyModels();
-
-        $relations = [];
 
         foreach ($properties as $property) {
             $key = $property->getKey();
@@ -63,78 +63,54 @@ trait InteractsWithModels
             if (isset($propertyModels[$key]) && isset($attributes[$key])) {
                 $propertyModel = $propertyModels[$key];
 
-                $relations[$propertyModel->id] = [$propertyModel->pivotColumnKey() => $attributes[$key]];
+                $this->setEntityAttribute($entity, $property, $propertyModel, $attributes[$key]);
             }
         }
-
-        $entity->properties()->sync($relations);
-
-        $entity->load('properties');
 
         return $entity;
     }
 
     /**
-     * @return bool
+     * @param Entity $entity
+     * @param PropertyDefinition $property
+     * @param Property $model
+     * @param $attribute
      */
-    public function exists()
+    protected function setEntityAttribute(Entity $entity, PropertyDefinition $property, Property $model, $attribute)
     {
-        return $this->query()->exists();
+        $relationType = $property->getMeta('relationType');
+
+        if ($property->getType() === PropertyType::RELATION && $relationType === RelationType::MANY) {
+            if (!$entity->wasRecentlyCreated) {
+                $entity->properties()->detach($model->id);
+            }
+
+            foreach ($attribute as $item) {
+                $meta = [$model->pivotColumnKey() => $item];
+
+                $entity->properties()->attach($model->id, $meta);
+            }
+        } else {
+            $meta = [$model->pivotColumnKey() => $attribute];
+
+            if (!$entity->wasRecentlyCreated) {
+                $entity->properties()->updateExistingPivot($model->id, $meta);
+            } else {
+                $entity->properties()->attach($model->id, $meta);
+            }
+        }
     }
 
     /**
-     * @return Element[]
+     * @param Entity $entity
+     * @param $attributes
+     * @return Entity
+     * @throws ElementNotInstalledException
      */
-    public function get()
+    protected function updateEntity(Entity $entity, $attributes)
     {
-        return $this->mapIntoElements($this->query()->get());
-    }
+        $entity->touch();
 
-    /**
-     * @param $primaryKey
-     * @return Element
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    public function find($primaryKey)
-    {
-        return $this->mapIntoElement($this->query()->find($primaryKey));
-    }
-
-    /**
-     * @param $primaryKeys
-     * @return Element[]
-     */
-    public function findMany($primaryKeys)
-    {
-        return $this->mapIntoElements($this->query()->findMany($primaryKeys));
-    }
-
-    /**
-     * @param Entity $model
-     * @return Element
-     * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
-     */
-    protected function mapIntoElement(Entity $model)
-    {
-        $class = $this->getElementDefinition()->getClass();
-
-        return $model->toElement($class);
-    }
-
-    /**
-     * @param Collection $models
-     * @return Element[]
-     */
-    protected function mapIntoElements(Collection $models)
-    {
-        $relations = $this->getWiths($models);
-
-        $class = $this->getElementDefinition()->getClass();
-
-        return $models->map(function (Entity $model) use ($class, $relations) {
-            return $model->toElement($class, $relations);
-        })->all();
+        return $this->setEntityAttributes($entity, $attributes);
     }
 }

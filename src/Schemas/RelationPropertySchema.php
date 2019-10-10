@@ -2,9 +2,6 @@
 
 namespace Click\Elements\Schemas;
 
-use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
-use Click\Elements\Schema;
-
 /**
  * Class ElementSchema
  */
