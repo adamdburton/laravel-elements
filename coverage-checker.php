@@ -28,4 +28,4 @@ if ($coverage < $percentage) {
     exit(1);
 }
 
-echo 'Code coverage is ' . $coverage . '% - OK!' . PHP_EOL;
+echo 'Code coverage is ' . round($coverage, 2) . '% - OK!' . PHP_EOL;
