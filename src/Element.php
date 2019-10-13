@@ -77,7 +77,7 @@ abstract class Element implements ElementContract
     /**
      * @param null $attributes
      * @param bool $raw
-     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
      * @throws PropertyNotRegisteredException
@@ -94,7 +94,7 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
      * @throws PropertyNotRegisteredException

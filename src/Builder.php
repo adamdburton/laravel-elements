@@ -10,7 +10,6 @@ use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Models\Entity;
@@ -56,8 +55,8 @@ class Builder
      * @param $name
      * @param $arguments
      * @return Builder|mixed
+     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
      */
     public function __call($name, $arguments)
@@ -75,8 +74,8 @@ class Builder
      * @param $arguments
      * @return $this|Builder
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
      */
     protected function applyCallback($name, $arguments)
     {
@@ -192,13 +191,13 @@ class Builder
      */
     public function first()
     {
-        $element = $this->query()->first();
+        $entity = $this->query()->first();
 
-        if (!$element) {
+        if (!$entity) {
             return null;
         }
 
-        return $this->mapIntoElement($element);
+        return $this->mapIntoElement($entity);
     }
 
     /**
@@ -215,7 +214,7 @@ class Builder
     /**
      * @param array $attributes
      * @return Element
-     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Property\PropertyValueInvalidException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
@@ -245,7 +244,8 @@ class Builder
      * @return Element
      * @throws ElementNotRegisteredException
      * @throws ElementNotInstalledException
-     * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
+     * @throws Exceptions\Element\ElementNotLoadedException
      */
     public function createRaw(array $attributes)
     {
@@ -258,7 +258,7 @@ class Builder
      * @param array $attributes
      * @return Element
      * @throws ElementNotInstalledException
-     * @throws Exceptions\Property\PropertyValidationFailed
+     * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Property\PropertyValueInvalidException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
@@ -290,6 +290,7 @@ class Builder
      * @throws ElementNotRegisteredException
      * @throws ElementNotInstalledException
      * @throws PropertyNotRegisteredException
+     * @throws BindingResolutionException
      */
     public function updateRaw(array $attributes)
     {
@@ -320,6 +321,7 @@ class Builder
      * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
      * @throws PropertyNotInstalledException
+     * @throws PropertyNotRegisteredException
      */
     protected function getPropertyModel(string $property)
     {
@@ -328,26 +330,27 @@ class Builder
 
     /**
      * @param Collection $models
-     * @return Element[]
+     * @return \Click\Elements\Collection
      * @throws BindingResolutionException
      * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
      */
-    protected function getWiths(Collection $models)
+    protected function getWiths(Collection $elements)
     {
-        $propertyDefinitions = $this->getElementDefinition()->getPropertyDefinitions();
-        $propertyModels = $this->getElementDefinition()->getPropertyModels();
+        $definitions = $this->getElementDefinition()->getPropertyDefinitions();
 
-        return collect($this->withs)->map(function ($a, $b) use ($models, $propertyDefinitions, $propertyModels) {
+        return collect($this->withs)->mapWithKeys(function ($a, $b) use ($elements, $definitions) {
             $key = $a instanceof Closure ? $b : $a;
             $callback = $a instanceof Closure ? $a : null;
 
-            $propertyDefinition = $propertyDefinitions[$key];
-            $propertyModel = $propertyModels[$key];
+            $propertyDefinition = $definitions[$key];
 
-            $primaryKeys = $models->map(function ($model) use ($propertyModel) {
-                return $model->properties->pluck('pivot.' . $propertyModel->getPivotColumnKey());
-            })->flatten()->all();
+            $primaryKeys = $elements->map(function (Entity $entity) use ($key) {
+                $element = $entity->toElement();
+                $attributes = $element->getRawAttributes();
+
+                return $attributes[$key];
+            })->unique()->all();
 
             $query = elements()->getElementDefinition($propertyDefinition->getMeta('elementType'))->query();
 
@@ -355,8 +358,8 @@ class Builder
                 $callback($query);
             }
 
-            return $query->findMany($primaryKeys);
-        })->flatten()->keyBy('meta.id')->all();
+            return [$key => $query->findMany($primaryKeys)->keyBy->getPrimaryKey()];
+        });
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Click\Elements\Models;
 
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Element\ElementNotLoadedException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Pivots\EntityProperty;
@@ -89,52 +90,41 @@ class Entity extends Model
     /**
      * @return Element
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
      * @throws BindingResolutionException
      */
     public function toElement()
     {
-        // Relationships are stored as rows, so sometimes the same property will come up.
-        // We need to store these to map back as an array later.
+        $attributes = $this->getPropertyValues();
 
-        $properties = [];
-        $manyRelations = [];
-
-        foreach ($this->getProperties() as $property) {
-            $key = $property->key;
-            $column = $property->getPivotColumnKey();
-
-            if ($this->isManyRelationProperty($key)) {
-                if (!isset($manyRelations[$key])) {
-                    $manyRelations[$key] = [];
-                }
-
-                $manyRelations[$key][] = $property->pivot->$column;
-                $properties[$key] = $manyRelations[$key];
-            } else {
-                $properties[$key] = $property->pivot->$column;
-            }
-        }
-
-        $attributes = collect(array_keys($properties))->mapWithKeys(function ($property) use ($properties) {
-            $value = $properties[$property];
-
-            return [$property => $value];
-        })->all();
-
-        $meta = $this->getMeta();
-
-        $relations = $this->relationLoaded('relatedElements') ? $this->relatedElements : null;
-
-        return elements()->factory($this->type, $attributes, $meta, $relations);
+        return elements()->factory(
+            $this->type,
+            $attributes,
+            $this->getMeta()
+        );
     }
 
     /**
      * @return Property[]
      */
-    protected function getProperties()
+    protected function getPropertyValues()
     {
-        return $this->properties->keyBy('key')->all();
+        $values = [];
+
+        $this->properties->each(function (Property $property) use (&$values) {
+            if (isset($values[$property->key]) && !is_array($values[$property->key])) {
+                $values[$property->key] = [$values[$property->key]];
+            }
+
+            if (isset($values[$property->key]) && is_array($values[$property->key])) {
+                $values[$property->key][] = $property->getValue();
+            } else {
+                $values[$property->key] = $property->getValue();
+            }
+        })->all();
+
+        return $this->properties->mapWithKeys(function (Property $property) use ($values) {
+            return [$property->key => $values[$property->key]];
+        })->all();
     }
 
     /**
@@ -146,6 +136,7 @@ class Entity extends Model
      */
     protected function isManyRelationProperty(string $property)
     {
+        dd('used');
         $definition = $this->getElementDefinition()->getPropertyDefinition($property);
 
         if ($definition->getType() !== PropertyType::RELATION) {
@@ -176,14 +167,5 @@ class Entity extends Model
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-    }
-
-    /**
-     * @param string $property
-     * @return mixed
-     */
-    public function getProperty(string $property)
-    {
-        return $this->properties->where('property', $property)->first();
     }
 }

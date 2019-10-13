@@ -5,6 +5,8 @@ namespace Click\Elements\Tests;
 use BadMethodCallException;
 use Click\Elements\Builder;
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Property\PropertyValidationFailedException;
+use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
 use Click\Elements\Tests\Assets\GetterElement;
@@ -12,6 +14,7 @@ use Click\Elements\Tests\Assets\PlainElement;
 use Click\Elements\Tests\Assets\RelatedElement;
 use Click\Elements\Tests\Assets\ScopedElement;
 use Click\Elements\Tests\Assets\SetterElement;
+use Click\Elements\Tests\Assets\ValidationElement;
 
 class ElementTest extends TestCase
 {
@@ -108,8 +111,21 @@ class ElementTest extends TestCase
         RelatedElement::create([
             'plainElements' => ['a', 'b']
         ]);
+    }
 
-//        $this->assertSame($plainElement->getPrimaryKey(), $relatedElement->plainElement);
+    public function test_invalid_many_relation()
+    {
+        $this->elements->register(RelatedElement::class)->install();
+
+        RelatedElement::create([
+            'plainElements' => [2]
+        ]);
+
+        $this->expectException(ManyRelationInvalidException::class);
+
+        RelatedElement::create([
+            'plainElements' => 2
+        ]);
     }
 
     public function test_single_relation()
@@ -126,6 +142,17 @@ class ElementTest extends TestCase
         ]);
 
         $this->assertSame($plainElement->getPrimaryKey(), $relatedElement->plainElement->getPrimaryKey());
+    }
+
+    public function test_single_relation_null()
+    {
+        $this->elements->register(RelatedElement::class)->install();
+
+        $element = new RelatedElement();
+
+        $relatedElement = $element->plainElement;
+
+        $this->assertNull($relatedElement);
     }
 
     public function test_many_relation()
@@ -158,6 +185,51 @@ class ElementTest extends TestCase
         $returnedIds = collect($relatedElement->plainElements)->map->getPrimaryKey()->all();
 
         $this->assertSame($originalIds, $returnedIds);
+    }
+
+    public function test_many_relations_again()
+    {
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+
+        $plainElement1 = PlainElement::create([]);
+        $plainElement2 = PlainElement::create([]);
+
+        $plainElementKeys = [$plainElement1->getPrimaryKey(), $plainElement2->getPrimaryKey()];
+
+        $relatedElement = RelatedElement::create([
+            'plainElements' => $plainElementKeys
+        ]);
+
+        $relatedElement = RelatedElement::find($relatedElement->getPrimaryKey());
+
+        $plainElements = $relatedElement->plainElements;
+
+        $this->assertSameSize($plainElementKeys, $plainElements);
+
+        $keys = $plainElements->map(function (PlainElement $element) {
+            return $element->getPrimaryKey();
+        })->all();
+
+        $this->assertSame($plainElementKeys, $keys);
+    }
+
+    public function test_many_relations_from_collection()
+    {
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+
+        $relatedElement = RelatedElement::create([
+            'plainElements' => $plainElements = [PlainElement::create([]), PlainElement::create([])]
+        ]);
+
+        $collection = $relatedElement->plainElements;
+
+        $relatedElement = new RelatedElement();
+
+        $relatedElement->plainElements = $collection;
+
+        $this->assertSame($plainElements, $relatedElement->plainElements->all());
     }
 
     public function test_where_has_single_relation()
@@ -226,8 +298,10 @@ class ElementTest extends TestCase
             'plainElement' => $plainElement
         ]);
 
+        /** @var RelatedElement $element */
         $element = RelatedElement::with('plainElement')->find($related->getPrimaryKey());
 
+        $this->assertTrue($element->hasRelationLoaded('plainElement'));
         $this->assertSame($plainElement->getPrimaryKey(), $element->plainElement->getPrimaryKey());
 
         $plainElement = PlainElement::create([
@@ -239,10 +313,34 @@ class ElementTest extends TestCase
         ]);
 
         $element = RelatedElement::with(['plainElement' => function (Builder $query) {
-            $query->where('string', 'testing');
+            $query->where('string', 'test 123');
         }])->find($related->getPrimaryKey());
 
+        $this->assertTrue($element->hasRelationLoaded('plainElement'));
         $this->assertSame($plainElement->getPrimaryKey(), $element->plainElement->getPrimaryKey());
+    }
+
+    public function test_withs_again()
+    {
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+
+        $plainElement1 = PlainElement::create([
+            'string' => 'test'
+        ]);
+
+        $plainElement2 = PlainElement::create([
+            'string' => 'test 2'
+        ]);
+
+        $related = RelatedElement::create([
+            'plainElements' => [$plainElement1, $plainElement2]
+        ]);
+
+        /** @var RelatedElement $loadedElement */
+        $loadedElement = RelatedElement::with('plainElements')->first();
+
+        $this->assertTrue($loadedElement->hasRelationLoaded('plainElements'));
     }
 
     public function test_querying_relation_properties()
@@ -446,5 +544,36 @@ SQL;
         $element->status = 'something';
 
         $this->assertSame('SOMETHING', $element->status);
+    }
+
+    public function test_validation()
+    {
+        $this->elements->register(ValidationElement::class)->install();
+
+        $this->expectException(PropertyValidationFailedException::class);
+
+        ValidationElement::create([]);
+    }
+
+    public function test_validation_again()
+    {
+        $this->elements->register(ValidationElement::class)->install();
+
+        $element = new ValidationElement();
+
+        $this->expectException(PropertyValidationFailedException::class);
+
+        $element->string = '';
+    }
+
+    public function test_property_types()
+    {
+        $this->elements->register(ValidationElement::class)->install();
+
+        $element = new ValidationElement();
+
+        $this->expectException(PropertyValueInvalidException::class);
+
+        $element->json = 123;
     }
 }

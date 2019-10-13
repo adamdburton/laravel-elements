@@ -42,17 +42,11 @@ class ElementDefinition implements DefinitionContract
     /**
      * @param Element $element
      * @param ElementSchema $schema
-     * @param bool $load
-     * @throws ElementNotInstalledException
      */
-    public function __construct(Element $element, ElementSchema $schema, $load = true)
+    public function __construct(Element $element, ElementSchema $schema)
     {
         $this->element = $element;
         $this->schema = $schema;
-
-        if ($load) {
-            $this->getPropertyModels();
-        }
     }
 
     /**
@@ -190,15 +184,10 @@ class ElementDefinition implements DefinitionContract
     /**
      * @param string $key
      * @return PropertyDefinition|null
-     * @throws PropertyNotRegisteredException
      */
     public function getPropertyDefinition(string $key)
     {
         $properties = $this->getPropertyDefinitions();
-
-        if (!isset($properties[$key])) {
-            throw new PropertyNotRegisteredException($key);
-        }
 
         return $properties[$key];
     }
@@ -207,31 +196,11 @@ class ElementDefinition implements DefinitionContract
      * @param string $property
      * @return Property
      * @throws ElementNotInstalledException
-     * @throws PropertyNotInstalledException
-     * @throws PropertyNotRegisteredException
      */
     public function getPropertyModel(string $property)
     {
-        $propertyDefinitions = $this->getPropertyDefinitions();
         $propertyModels = $this->getPropertyModels();
 
-        if(!isset($propertyDefinitions[$property])) {
-            throw new PropertyNotRegisteredException($property);
-        }
-
-        if (!isset($propertyModels[$property])) {
-            throw new PropertyNotInstalledException($property);
-        }
-
         return $propertyModels[$property];
-    }
-
-    /**
-     * @return bool
-     * @throws ElementNotInstalledException
-     */
-    public function isInstalled()
-    {
-        return collect($this->getPropertyModels())->pluck('element')->contains($this->getAlias());
     }
 }

@@ -6,6 +6,7 @@ use Click\Elements\Element;
 use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
+use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Schemas\ElementSchema;
 use Click\Elements\Types\RelationType;
 
@@ -15,7 +16,7 @@ class PlainElement extends Element
      * @param ElementSchema $schema
      * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
-     * @throws ManyRelationInvalidException
+     * @throws RelationTypeNotValidException
      */
     public function getDefinition(ElementSchema $schema)
     {

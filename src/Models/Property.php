@@ -4,8 +4,8 @@ namespace Click\Elements\Models;
 
 use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\Types\PropertyType;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Model for storing properties
@@ -46,8 +46,17 @@ class Property extends Model
                 break;
             case PropertyType::RELATION:
                 $type = PropertyType::UNSIGNED_INTEGER;
+                break;
         }
 
         return sprintf('%s_value', $type);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->pivot->{$this->getPivotColumnKey()};
     }
 }

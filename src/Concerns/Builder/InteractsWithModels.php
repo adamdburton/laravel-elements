@@ -23,12 +23,16 @@ use Illuminate\Support\Collection as BaseCollection;
 trait InteractsWithModels
 {
     /**
-     * @param Model $element
+     * @param Model $entity
      * @return Element
      */
-    protected function mapIntoElement(Model $element)
+    protected function mapIntoElement(Model $entity)
     {
-        return $this->mapIntoElements(collect([$element]))->first();
+        $collection = collect([$entity]);
+
+        $firstElement = $this->mapIntoElements($collection)->first();
+
+        return $firstElement;
     }
 
     /**
@@ -39,7 +43,7 @@ trait InteractsWithModels
     {
         $relations = $this->getWiths($models);
 
-        return new Collection($models, $relations);
+        return Collection::fromEntities($models)->setRelations($relations);
     }
 
     /**

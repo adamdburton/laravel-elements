@@ -4,7 +4,7 @@ namespace Click\Elements\Exceptions\Property;
 
 use Exception;
 
-class PropertyValidationFailed extends Exception
+class PropertyValidationFailedException extends Exception
 {
     /**
      * @var array

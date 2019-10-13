@@ -9,7 +9,7 @@ class PropertyValueInvalidException extends Exception
     public function __construct($key, $type, $value)
     {
         parent::__construct(sprintf(
-            'Property "%s" must be "%s", "%s" given.',
+            'Property "%s" must be type "%s", type "%s" given.',
             $key,
             $type,
             gettype($value)
