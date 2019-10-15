@@ -10,8 +10,6 @@ use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Exceptions\Element\ElementNotInstalledException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
-use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Models\Entity;
 use Closure;
 use Illuminate\Contracts\Container\BindingResolutionException;
@@ -57,7 +55,6 @@ class Builder
      * @return Builder|mixed
      * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
      */
     public function __call($name, $arguments)
     {
@@ -74,7 +71,6 @@ class Builder
      * @param $arguments
      * @return $this|Builder
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
      * @throws BindingResolutionException
      */
     protected function applyCallback($name, $arguments)
@@ -94,7 +90,6 @@ class Builder
      * @param string $relation
      * @return Builder
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
      * @throws BindingResolutionException
      */
     public function getRelationQuery(string $relation)
@@ -113,7 +108,6 @@ class Builder
      * @param string $property
      * @return PropertyDefinition|null
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
      * @throws BindingResolutionException
      */
     protected function getPropertyDefinition(string $property)
@@ -219,7 +213,6 @@ class Builder
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
      * @throws ElementNotInstalledException
-     * @throws Exceptions\Property\PropertyNotRegisteredException
      */
     public function create(array $attributes)
     {
@@ -245,7 +238,6 @@ class Builder
      * @throws ElementNotRegisteredException
      * @throws ElementNotInstalledException
      * @throws BindingResolutionException
-     * @throws Exceptions\Element\ElementNotLoadedException
      */
     public function createRaw(array $attributes)
     {
@@ -262,7 +254,6 @@ class Builder
      * @throws Exceptions\Property\PropertyValueInvalidException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws PropertyNotRegisteredException
      */
     public function update(array $attributes)
     {
@@ -289,7 +280,6 @@ class Builder
      * @return Element
      * @throws ElementNotRegisteredException
      * @throws ElementNotInstalledException
-     * @throws PropertyNotRegisteredException
      * @throws BindingResolutionException
      */
     public function updateRaw(array $attributes)
@@ -320,8 +310,6 @@ class Builder
      * @throws BindingResolutionException
      * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
-     * @throws PropertyNotInstalledException
-     * @throws PropertyNotRegisteredException
      */
     protected function getPropertyModel(string $property)
     {
@@ -329,10 +317,9 @@ class Builder
     }
 
     /**
-     * @param Collection $models
+     * @param Collection $elements
      * @return \Click\Elements\Collection
      * @throws BindingResolutionException
-     * @throws ElementNotInstalledException
      * @throws ElementNotRegisteredException
      */
     protected function getWiths(Collection $elements)

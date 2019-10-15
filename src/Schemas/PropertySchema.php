@@ -28,7 +28,6 @@ class PropertySchema extends Schema
     /**
      * @param string $key
      * @param string $type
-     * @throws PropertyKeyInvalidException
      */
     public function __construct(string $key, string $type)
     {
@@ -41,11 +40,34 @@ class PropertySchema extends Schema
     /**
      * @param $name
      * @param $arguments
-     * @return Schema
+     * @return $this
      */
     public function __call($name, $arguments)
     {
         $this->meta[$name] = count($arguments) > 1 ? $arguments : ($arguments[0] ?? true);
+
+        return $this;
+    }
+
+    /**
+     * @param $validation
+     * @return $this
+     */
+    public function validation($validation)
+    {
+        $this->meta['validation'] = $validation;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function unique()
+    {
+        $validation = $this->meta['validation'] ?? [];
+
+        $validation[] = 'unique';
 
         return $this;
     }

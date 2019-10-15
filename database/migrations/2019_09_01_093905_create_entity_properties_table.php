@@ -17,6 +17,7 @@ class CreateEntityPropertiesTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('entity_id');
             $table->unsignedBigInteger('property_id');
+//            $table->unsignedBigInteger('version')->default(1);
 
             $table->unsignedBigInteger('unsigned_integer_value', false)->nullable();
             $table->bigInteger('integer_value', false)->nullable();

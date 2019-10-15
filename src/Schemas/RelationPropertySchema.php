@@ -28,4 +28,19 @@ class RelationPropertySchema extends PropertySchema
 
         return $this;
     }
+
+    /**
+     * @param $key
+     * @return $this
+     */
+    public function withPivot($key)
+    {
+        $pivots = $this->meta['pivots'] ?? [];
+
+        $pivots[] = $key;
+
+        $this->meta['pivots'] = $pivots;
+
+        return $this;
+    }
 }

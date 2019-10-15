@@ -4,9 +4,7 @@ namespace Click\Elements\Models;
 
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Element;
-use Click\Elements\Exceptions\Element\ElementNotLoadedException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Pivots\EntityProperty;
 use Click\Elements\Scopes\ElementScope;
 use Click\Elements\Types\PropertyType;
@@ -31,7 +29,7 @@ class Entity extends Model
 {
     protected $table = 'elements_entities';
 
-    protected $fillable = ['type'];
+    protected $fillable = ['type', 'version'];
 
     protected static function boot()
     {
@@ -55,11 +53,11 @@ class Entity extends Model
             ->withPivot(
                 'boolean_value',
                 'integer_value',
-                'unsigned_integer_value',
+                'unsigned_integer_value', // Also used for relatedElements() as foreign key
                 'double_value',
                 'string_value',
                 'text_value',
-                'json_value',
+                'json_value', // Also used for relatedElements() as pivot
                 'timestamp_value'
             );
     }
@@ -74,6 +72,19 @@ class Entity extends Model
             'elements_entity_properties',
             'entity_id',
             'unsigned_integer_value'
+        );
+    }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function reverseRelatedElements()
+    {
+        return $this->belongsToMany(
+            Entity::class,
+            'elements_entity_properties',
+            'unsigned_integer_value',
+            'entity_id'
         );
     }
 

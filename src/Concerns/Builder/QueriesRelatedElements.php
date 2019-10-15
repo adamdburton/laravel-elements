@@ -2,10 +2,7 @@
 
 namespace Click\Elements\Concerns\Builder;
 
-use Click\Elements\Builder;
 use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException as ElementNotRegisteredExceptionAlias;
-use Click\Elements\Exceptions\ElementsNotInstalledException as ElementsNotInstalledExceptionAlias;
 use Click\Elements\Models\Property;
 use Closure;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
@@ -15,30 +12,73 @@ use Illuminate\Database\Eloquent\Builder as Eloquent;
  *
  * @method Property getPropertyModel($key)
  * @method PropertyDefinition getPropertyDefinition($key)
- * @method Builder query()
+ * @method Eloquent query()
  */
 trait QueriesRelatedElements
 {
     /**
      * @param $relationProperty
-     * @param Closure $callback
-     * @return QueriesRelatedElements
-     * @throws ElementNotRegisteredExceptionAlias
-     * @throws ElementsNotInstalledExceptionAlias
+     * @param string $operator
+     * @param int $count
+     * @param string $boolean
+     * @param Closure|null $callback
+     * @return $this
      */
-    public function whereHas($relationProperty, Closure $callback)
+    public function has(string $relationProperty, $operator = '>=', $count = 1, $boolean = 'and', Closure $callback = null)
     {
-        $propertyModel = $this->getPropertyModel($relationProperty);
-        $elementQuery = $this->getRelationQuery($relationProperty);
+        $this->query()->has(
+            'relatedElements',
+            $operator,
+            $count,
+            $boolean,
+            function (Eloquent $query) use ($relationProperty, $callback) {
+                $propertyModel = $this->getPropertyModel($relationProperty);
 
-        $this->query()->whereHas('relatedElements', function (Eloquent $query) use ($propertyModel, $elementQuery, $callback) {
-            $query->where('property_id', $propertyModel->id);
+                $query->where('property_id', $propertyModel->id);
 
-            $elementQuery->setQuery($query);
+                if ($callback) {
+                    $elementQuery = $this->getRelationQuery($relationProperty)->setQuery($query);
 
-            $callback($elementQuery);
-        });
+                    $callback($elementQuery);
+                }
+            }
+        );
 
         return $this;
+    }
+
+    /**
+     * @param string $relationProperty
+     * @param Closure|null $callback
+     * @param string $boolean
+     * @return QueriesRelatedElements
+     */
+    public function doesntHave(string $relationProperty, Closure $callback = null, $boolean = 'and')
+    {
+        return $this->has($relationProperty, '<', 1, $boolean, $callback);
+    }
+
+    /**
+     * @param $relationProperty
+     * @param Closure $callback
+     * @param string $operator
+     * @param int $count
+     * @param string $boolean
+     * @return QueriesRelatedElements
+     */
+    public function whereHas(string $relationProperty, Closure $callback, $operator = '>=', $count = 1, $boolean = 'and')
+    {
+        return $this->has($relationProperty, $operator, $count, $boolean, $callback);
+    }
+
+    /**
+     * @param string $relationProperty
+     * @param Closure $callback
+     * @param string $boolean
+     * @return QueriesRelatedElements
+     */
+    public function whereDoesntHave(string $relationProperty, Closure $callback, $boolean = 'and')
+    {
+        return $this->whereHas($relationProperty, $callback, '<', 1, $boolean);
     }
 }

@@ -250,12 +250,13 @@ Proprietary. Please see the [license file](license.md) for more information.
   
 [ico-version]: https://img.shields.io/packagist/v/click/elements.svg?style=flat-square  
 [ico-downloads]: https://img.shields.io/packagist/dt/click/elements.svg?style=flat-square  
-[ico-travis]: https://img.shields.io/travis/click/elements/master.svg?style=flat-square  
+[ico-travis]: https://git.clickdigitalsolutions.co.uk/internal/elements/badges/master/pipeline.svg 
 [ico-styleci]: https://styleci.io/repos/12345678/shield  
   
 [link-packagist]: https://packagist.org/packages/click/elements  
 [link-downloads]: https://packagist.org/packages/click/elements  
-[link-travis]: https://travis-ci.org/click/elements  
+[link-travis]: https://git.clickdigitalsolutions.co.uk/internal/elements
 [link-styleci]: https://styleci.io/repos/12345678  
 [link-author]: https://github.com/click  
 [link-contributors]: ../../contributors
+

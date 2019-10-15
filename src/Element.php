@@ -8,11 +8,10 @@ use Click\Elements\Concerns\Element\HasTypedProperties;
 use Click\Elements\Contracts\ElementContract;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
-use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
 use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
 use Click\Elements\Models\Entity;
 use Closure;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
@@ -34,8 +33,20 @@ use Illuminate\Support\Traits\ForwardsCalls;
  * @method static Builder where($property, $operator = '=', $value = null)
  * @see Builder::where()
  *
+ * @method static Builder delete()
+ * @see Builder::delete()
+ *
+ * @method static Builder has($property, Closure $callback)
+ * @see Builder::has()
+ *
+ * @method static Builder doesntHave($property, Closure $callback)
+ * @see Builder::doesntHave()
+ *
  * @method static Builder whereHas($property, Closure $callback)
  * @see Builder::whereHas()
+ *
+ * @method static Builder whereDoesntHave($property, Closure $callback)
+ * @see Builder::whereDoesntHave()
  *
  */
 abstract class Element implements ElementContract
@@ -80,7 +91,6 @@ abstract class Element implements ElementContract
      * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
      */
     public function __construct($attributes = null, $raw = false)
@@ -97,7 +107,6 @@ abstract class Element implements ElementContract
      * @throws Exceptions\Property\PropertyValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws PropertyNotRegisteredException
      * @throws PropertyValueInvalidException
      */
     public static function __callStatic($method, $parameters)
@@ -141,8 +150,6 @@ abstract class Element implements ElementContract
      */
     public function setMeta(array $meta)
     {
-        // TODO: Make these an actual array or object
-
         if (isset($meta['id'])) {
             $this->primaryKey = $meta['id'];
         }
@@ -161,7 +168,7 @@ abstract class Element implements ElementContract
     /**
      * @return array
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws BindingResolutionException
      */
     public function toJson()
     {
@@ -187,7 +194,7 @@ abstract class Element implements ElementContract
     /**
      * @return ElementDefinition
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
+     * @throws BindingResolutionException
      */
     public function getElementDefinition()
     {

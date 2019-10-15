@@ -26,7 +26,6 @@ class Elements
 
     /**
      * @throws ElementClassInvalidException
-     * @throws Exceptions\Element\ElementNotInstalledException
      */
     public function install()
     {
@@ -39,7 +38,6 @@ class Elements
      * @param string $class
      * @return ElementDefinition
      * @throws ElementClassInvalidException
-     * @throws Exceptions\Element\ElementNotInstalledException
      */
     public function register(string $class)
     {
@@ -47,9 +45,9 @@ class Elements
 
         /** @var Element $element */
         $element = new $class;
-        $element->getDefinition($schema = new ElementSchema());
+        $element->getDefinition($schema = new ElementSchema($element));
 
-        $definition = new ElementDefinition($element, $schema, false);
+        $definition = new ElementDefinition($element, $schema);
 
         $this->elementDefinitions[$definition->getClass()] = $definition;
         $this->elementAliases[$definition->getAlias()] = $definition->getClass();

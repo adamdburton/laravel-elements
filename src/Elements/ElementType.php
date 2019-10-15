@@ -19,7 +19,8 @@ class ElementType extends Element
      */
     public function getDefinition(ElementSchema $schema)
     {
-        $schema->string('class')
+        $schema
+            ->string('class')
             ->label('Class')
             ->description('The Element class name.')
             ->required();

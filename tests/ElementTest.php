@@ -285,6 +285,32 @@ class ElementTest extends TestCase
         $this->assertSame($relatedElement3->getPrimaryKey(), $returnedElement->getPrimaryKey());
     }
 
+    public function test_where_doesnt_have()
+    {
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+
+        $relatedElement1 = RelatedElement::create([
+            'plainElement' => PlainElement::create([
+                'string' => 'abcdef'
+            ])
+        ]);
+
+        $relatedElement1->plainElement;
+
+        $relatedElement2 = RelatedElement::create([
+            'plainElement' => PlainElement::create([
+                'string' => 'uvwxyz'
+            ])
+        ]);
+
+        $foundElement = RelatedElement::whereDoesntHave('plainElement', function(Builder $query) {
+            $query->where('string', 'abcdef');
+        })->first();
+
+        $this->assertSame($relatedElement2->getPrimaryKey(), $foundElement->getPrimaryKey());
+    }
+
     public function test_withs()
     {
         $this->elements->register(PlainElement::class)->install();
@@ -566,6 +592,18 @@ SQL;
         $element->string = '';
     }
 
+    public function test_validation_again_again()
+    {
+        $this->elements->register(ValidationElement::class)->install();
+
+        $this->expectException(PropertyValidationFailedException::class);
+
+        ValidationElement::create([
+            'string' => 'this_is_required',
+            'email' => 'not_an_email'
+        ]);
+    }
+
     public function test_property_types()
     {
         $this->elements->register(ValidationElement::class)->install();
@@ -575,5 +613,12 @@ SQL;
         $this->expectException(PropertyValueInvalidException::class);
 
         $element->json = 123;
+    }
+
+    public function test_two_way_binding()
+    {
+        $this->expectNotToPerformAssertions();
+
+        // TODO: https://git.clickdigitalsolutions.co.uk/internal/elements/issues/4
     }
 }

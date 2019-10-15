@@ -4,7 +4,6 @@ namespace Click\Elements\Concerns\Element;
 
 use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -30,19 +29,19 @@ trait HasTwoWayBinding
      * @throws ElementNotRegisteredException
      * @throws ElementsNotInstalledException
      */
-    public static function mapForModel(Element $element)
-    {
-        return $element->toJson();
-    }
+//    public static function mapForModel(Element $element)
+//    {
+//        return $element->toJson()['attributes'];
+//    }
 
     /**
      * @param Model $model
      * @return array
      */
-    public static function mapForElement(Model $model)
-    {
-        return $model->toArray();
-    }
+//    public static function mapForElement(Model $model)
+//    {
+//        return $model->toArray();
+//    }
 
     /**
      * @return string

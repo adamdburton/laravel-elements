@@ -17,6 +17,7 @@ class CreateEntitiesTable extends Migration
             $table->bigIncrements('id');
 //            $table->string('uuid')->unique();
             $table->string('type')->index();
+//            $table->unsignedBigInteger('version')->default(1);
             $table->nullableMorphs('bindable');
             $table->timestamps();
         });

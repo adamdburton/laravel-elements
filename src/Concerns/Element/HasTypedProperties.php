@@ -97,6 +97,7 @@ trait HasTypedProperties
      * @return mixed
      * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
+     * @throws RelationNotDefinedException
      */
     public function getAttributeValue($key)
     {
@@ -164,10 +165,14 @@ trait HasTypedProperties
 
         // TODO: Allow passing validation messages and custom attributes here
 
-        $validator = Validator::make(['value' => $value], ['value' => $rules[$key]]);
+        $validator = Validator::make([$key => $value], [$key => $rules[$key]]);
 
         if ($validator->fails()) {
-            throw new PropertyValidationFailedException($this->getAlias(), $key, $validator->getMessageBag()->get('value'));
+            throw new PropertyValidationFailedException(
+                $this->getAlias(),
+                $key,
+                $validator->getMessageBag()->get($key)
+            );
         }
     }
 
@@ -264,6 +269,8 @@ trait HasTypedProperties
     protected function validateAttributes($attributes)
     {
         $rules = $this->getElementDefinition()->getValidationRules();
+
+        // TODO: Allow passing validation messages and custom attributes here
 
         $validator = Validator::make($attributes, $rules);
 

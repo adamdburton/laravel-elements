@@ -8,7 +8,6 @@ use Click\Elements\Element;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Exceptions\Relation\RelationNotDefinedException;
-use Click\Elements\Exceptions\Relation\RelationValueInvalidException;
 use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
 use Click\Elements\Types\PropertyType;
 use Click\Elements\Types\RelationType;
@@ -219,8 +218,6 @@ trait HasRelations
      * @param string $key
      * @param PropertyDefinition $definition
      * @return Element
-     * @throws BindingResolutionException
-     * @throws ElementNotRegisteredException
      */
     protected function getSingleRelation(string $key, PropertyDefinition $definition)
     {
