@@ -2,6 +2,7 @@
 
 namespace Click\Elements\Concerns\Element;
 
+use Carbon\Carbon;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Element;
@@ -221,14 +222,23 @@ trait HasTypedProperties
         $definition = $this->getElementDefinition()->getPropertyDefinition($key);
 
         $type = $definition->getType();
+        $checkType = true;
 
         if ($type === PropertyType::JSON) {
-            $type = PropertyType::ARRAY;
+            $type = 'array';
+        } elseif ($type === PropertyType::UNSIGNED_INTEGER) {
+            $type = 'integer';
+        } elseif ($type === PropertyType::TEXT) {
+            $type = 'string';
+        } elseif ($type === PropertyType::TIMESTAMP) {
+            if (!$value instanceof Carbon) {
+                throw new PropertyValueInvalidException($definition->getKey(), Carbon::class, $value);
+            }
+
+            $checkType = false;
         }
 
-        // Check the types first
-
-        if (gettype($value) !== $type) {
+        if ($checkType && gettype($value) !== $type) {
             throw new PropertyValueInvalidException($definition->getKey(), $type, $value);
         }
     }
@@ -272,13 +282,15 @@ trait HasTypedProperties
 
         // TODO: Allow passing validation messages and custom attributes here
 
-        $validator = Validator::make($attributes, $rules);
+        if (count($rules)) {
+            $validator = Validator::make($attributes, $rules);
 
-        if ($validator->fails()) {
-            $key = $validator->errors()->keys()[0];
-            $errors = $validator->errors()->get($key);
+            if ($validator->fails()) {
+                $key = $validator->errors()->keys()[0];
+                $errors = $validator->errors()->get($key);
 
-            throw new PropertyValidationFailedException($this->getAlias(), $key, $errors);
+                throw new PropertyValidationFailedException($this->getAlias(), $key, $errors);
+            }
         }
     }
 
@@ -292,9 +304,12 @@ trait HasTypedProperties
 
     /**
      * @param $attributes
+     * @return HasTypedProperties
      */
     public function setRawAttributes($attributes)
     {
         $this->attributes = $attributes;
+
+        return $this;
     }
 }

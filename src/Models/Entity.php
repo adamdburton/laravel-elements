@@ -65,7 +65,7 @@ class Entity extends Model
     /**
      * @return BelongsToMany
      */
-    public function relatedElements()
+    public function relatedEntities()
     {
         return $this->belongsToMany(
             Entity::class,
@@ -78,7 +78,7 @@ class Entity extends Model
     /**
      * @return BelongsToMany
      */
-    public function reverseRelatedElements()
+    public function reverseRelatedEntities()
     {
         return $this->belongsToMany(
             Entity::class,
@@ -107,7 +107,7 @@ class Entity extends Model
     {
         $attributes = $this->getPropertyValues();
 
-        return elements()->factory(
+        return elements()->make(
             $this->type,
             $attributes,
             $this->getMeta()

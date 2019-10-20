@@ -5,6 +5,7 @@ namespace Click\Elements;
 use Carbon\Carbon;
 use Click\Elements\Concerns\Element\HasScopes;
 use Click\Elements\Concerns\Element\HasTypedProperties;
+use Click\Elements\Concerns\Element\MocksElements;
 use Click\Elements\Contracts\ElementContract;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
@@ -54,6 +55,7 @@ abstract class Element implements ElementContract
     use HasTypedProperties;
     use HasScopes;
     use ForwardsCalls;
+    use MocksElements;
 
     /**
      * @var int

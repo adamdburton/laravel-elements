@@ -60,6 +60,35 @@ trait InteractsWithModels
     }
 
     /**
+     * @param array $attributes
+     * @return Entity
+     * @throws ElementNotInstalledException
+     */
+    protected function createRawEntity($attributes = [])
+    {
+        /** @var Entity $entity */
+        $entity = Entity::create(['type' => $this->element->getAlias()]);
+
+        $propertyModels = $this->getElementDefinition()->getPropertyModels();
+
+        $pivots = [];
+
+        foreach ($attributes as $key => $value) {
+            if (isset($propertyModels[$key])) {
+                $model = $propertyModels[$key];
+
+                $pivots[$model->id] = [$model->getPivotColumnKey() => $value];
+            }
+        }
+
+        if (count($pivots)) {
+            $entity->properties()->attach($pivots);
+        }
+
+        return $entity;
+    }
+
+    /**
      * @param Entity $entity
      * @param $attributes
      * @return Entity
@@ -106,10 +135,10 @@ trait InteractsWithModels
         } else {
             $meta = [$model->getPivotColumnKey() => $attribute];
 
-            if (!$entity->wasRecentlyCreated) {
-                $entity->properties()->updateExistingPivot($model->id, $meta);
-            } else {
+            if ($entity->wasRecentlyCreated) {
                 $entity->properties()->attach($model->id, $meta);
+            } else {
+                $entity->properties()->updateExistingPivot($model->id, $meta);
             }
         }
     }

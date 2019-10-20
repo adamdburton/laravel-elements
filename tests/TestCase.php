@@ -30,10 +30,7 @@ abstract class TestCase extends BaseTestCase
         $this->elements = app(Elements::class);
 
         if ($this->elementsInstalled) {
-            $this->artisan('migrate:fresh', [
-                '--database' => 'mysql',
-                '--realpath' => realpath(__DIR__ . '/../database/migrations'),
-            ]);
+            $this->runElementsMigration();
 
             $this->artisan(InstallElements::class);
         }
@@ -66,6 +63,14 @@ abstract class TestCase extends BaseTestCase
             'username' => 'testing',
             'password' => 'testing',
             'prefix' => '',
+        ]);
+    }
+
+    protected function runElementsMigration()
+    {
+        $this->artisan('migrate:fresh', [
+            '--database' => 'mysql',
+            '--realpath' => realpath(__DIR__ . '/../database/migrations'),
         ]);
     }
 }

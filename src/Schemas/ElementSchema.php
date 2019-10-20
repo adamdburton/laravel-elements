@@ -32,39 +32,6 @@ class ElementSchema extends Schema
 
     /**
      * @param $key
-     * @param $type
-     * @param null $schema
-     * @return PropertySchema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
-     */
-    protected function add($key, $type, $schema = null)
-    {
-        if (isset($this->schema[$key])) {
-            throw new PropertyAlreadyDefinedException($key);
-        }
-
-        $this->validateKey($key);
-
-        /** @var string $schema */
-        $schema = $schema ?: PropertySchema::class;
-
-        return $this->schema[$key] = new $schema($key, $type);
-    }
-
-    /**
-     * @param string $key
-     * @throws PropertyKeyInvalidException
-     */
-    protected function validateKey(string $key)
-    {
-        if (!preg_match('/^_?\\w*$/', $key)) {
-            throw new PropertyKeyInvalidException($key);
-        }
-    }
-
-    /**
-     * @param $key
      * @return PropertySchema
      * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
@@ -167,6 +134,39 @@ class ElementSchema extends Schema
     public function timestamp($key)
     {
         return $this->add($key, PropertyType::TIMESTAMP);
+    }
+
+    /**
+     * @param $key
+     * @param $type
+     * @param null $schema
+     * @return PropertySchema
+     * @throws PropertyAlreadyDefinedException
+     * @throws PropertyKeyInvalidException
+     */
+    protected function add($key, $type, $schema = null)
+    {
+        if (isset($this->schema[$key])) {
+            throw new PropertyAlreadyDefinedException($key);
+        }
+
+        $this->validateKey($key);
+
+        /** @var string $schema */
+        $schema = $schema ?: PropertySchema::class;
+
+        return $this->schema[$key] = new $schema($key, $type);
+    }
+
+    /**
+     * @param string $key
+     * @throws PropertyKeyInvalidException
+     */
+    protected function validateKey(string $key)
+    {
+        if (!preg_match('/^_?\\w*$/', $key)) {
+            throw new PropertyKeyInvalidException($key);
+        }
     }
 
     /**

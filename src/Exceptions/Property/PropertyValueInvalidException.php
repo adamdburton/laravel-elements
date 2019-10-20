@@ -12,7 +12,7 @@ class PropertyValueInvalidException extends Exception
             'Property "%s" must be type "%s", type "%s" given.',
             $key,
             $type,
-            gettype($value)
+            gettype($value) === 'object' && gettype($type) === 'string' ? $type : gettype($value)
         ));
     }
 }

@@ -27,7 +27,7 @@ trait QueriesRelatedElements
     public function has(string $relationProperty, $operator = '>=', $count = 1, $boolean = 'and', Closure $callback = null)
     {
         $this->query()->has(
-            'relatedElements',
+            'relatedEntities',
             $operator,
             $count,
             $boolean,

@@ -75,11 +75,11 @@ class Elements
      * @return Element
      * @throws ElementNotRegisteredException
      */
-    public function factory($type, $attributes = null, $meta = null)
+    public function make($type, $attributes = null, $meta = null)
     {
         $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->factory($attributes, $meta);
+        return $this->getElementDefinition($type)->make($attributes, $meta);
     }
 
     /**

@@ -28,7 +28,7 @@ trait HasRelations
     /**
      * @param $key
      * @param $value
-     * @return HasTypedProperties
+     * @return HasRelations
      * @throws ManyRelationInvalidException
      * @throws SingleRelationInvalidException
      */

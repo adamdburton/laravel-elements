@@ -17,7 +17,7 @@ class ValidationElement extends Element
     public function getDefinition(ElementSchema $schema)
     {
         $schema->string('string')->validation('required');
-        $schema->email('email');
+        $schema->string('email')->validation('sometimes|email');
         $schema->json('json');
     }
 }

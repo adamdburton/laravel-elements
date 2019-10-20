@@ -111,7 +111,7 @@ class ElementDefinition implements DefinitionContract
 
         Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
 
-        $element = ElementType::createRaw([
+        $element = ElementType::create([
             'class' => $this->getClass()
         ]);
 
@@ -147,7 +147,7 @@ class ElementDefinition implements DefinitionContract
      * @param null $meta
      * @return Element
      */
-    public function factory($attributes = null, $meta = null)
+    public function make($attributes = null, $meta = null)
     {
         $class = $this->getClass();
 

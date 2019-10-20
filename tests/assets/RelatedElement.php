@@ -8,8 +8,6 @@ use Click\Elements\Types\RelationType;
 
 class RelatedElement extends Element
 {
-    public $plainElement;
-
     public function getDefinition(ElementSchema $schema)
     {
         $schema->relation('plainElement', PlainElement::class, RelationType::SINGLE);

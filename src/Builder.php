@@ -99,7 +99,7 @@ class Builder
         $elementType = $propertyDefinition->getMeta('elementType');
         $elementDefinition = elements()->getElementDefinition($elementType);
 
-        $element = $elementDefinition->factory();
+        $element = $elementDefinition->make();
 
         return $element->query();
     }
@@ -216,16 +216,9 @@ class Builder
      */
     public function create(array $attributes)
     {
-        // Setting the attributes on an element will automatically
-        // trigger type checking and validation.
-
         $this->element->setAttributes($attributes);
 
-        // Continue, as an exception would have been throw by now.
-
         $entity = $this->createEntity($this->element->getRawAttributes());
-
-        // Return a new Element crated from the entity.
 
         return $this->element->setMeta($entity->getMeta());
     }
@@ -235,15 +228,15 @@ class Builder
      *
      * @param array $attributes
      * @return Element
-     * @throws ElementNotRegisteredException
      * @throws ElementNotInstalledException
-     * @throws BindingResolutionException
      */
     public function createRaw(array $attributes)
     {
-        $entity = $this->createEntity($attributes);
+        $this->element->setRawAttributes($attributes);
 
-        return $entity->toElement();
+        $entity = $this->createRawEntity($attributes);
+
+        return $this->element->setMeta($entity->getMeta());
     }
 
     /**
@@ -257,20 +250,11 @@ class Builder
      */
     public function update(array $attributes)
     {
-        // Setting the attributes on an element will automatically
-        // trigger type checking and validation.
-
         $this->element->setAttributes($attributes);
-
-        // Grab the original entity from the element being updated
 
         $entity = $this->element->getEntity();
 
-        // Updated the entity
-
         $this->updateEntity($entity, $this->element->getRawAttributes());
-
-        // Return a new Element composed from the updated entity
 
         return $this->element->setMeta($entity->getMeta());
     }

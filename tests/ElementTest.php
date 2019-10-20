@@ -18,10 +18,20 @@ use Click\Elements\Tests\Assets\ValidationElement;
 
 class ElementTest extends TestCase
 {
+    public function setUp(): void
+    {
+        parent::setUp();
+
+        $this->elements->register(PlainElement::class)->install();
+        $this->elements->register(RelatedElement::class)->install();
+        $this->elements->register(ValidationElement::class)->install();
+        $this->elements->register(ScopedElement::class)->install();
+        $this->elements->register(SetterElement::class)->install();
+        $this->elements->register(GetterElement::class)->install();
+    }
+
     public function test_create()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $element = PlainElement::create([
             'string' => $string = 'some string',
             'integer' => $integer = 123456789,
@@ -37,14 +47,12 @@ class ElementTest extends TestCase
             'integer' => $integer = '123'
         ]);
 
-        $this->assertSame((string)$string, $element->string);
-        $this->assertSame((int)$integer, $element->integer);
+        $this->assertSame($string, $element->string);
+        $this->assertSame($integer, $element->integer);
     }
 
     public function test_update()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $element = PlainElement::create([
             'string' => 'some string',
             'integer' => 123456789,
@@ -70,8 +78,6 @@ class ElementTest extends TestCase
 
     public function test_where()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $element = PlainElement::create([
             'string' => $string = 'some new string',
             'integer' => $integer = 987654321,
@@ -93,8 +99,6 @@ class ElementTest extends TestCase
 
     public function test_invalid_relation()
     {
-        $this->elements->register(RelatedElement::class)->install();
-
         $this->expectException(SingleRelationInvalidException::class);
 
         RelatedElement::create([
@@ -104,8 +108,6 @@ class ElementTest extends TestCase
 
     public function test_invalid_relations()
     {
-        $this->elements->register(RelatedElement::class)->install();
-
         $this->expectException(ManyRelationInvalidException::class);
 
         RelatedElement::create([
@@ -115,8 +117,6 @@ class ElementTest extends TestCase
 
     public function test_invalid_many_relation()
     {
-        $this->elements->register(RelatedElement::class)->install();
-
         RelatedElement::create([
             'plainElements' => [2]
         ]);
@@ -130,9 +130,6 @@ class ElementTest extends TestCase
 
     public function test_single_relation()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement = PlainElement::create([
             'string' => 'test'
         ]);
@@ -146,8 +143,6 @@ class ElementTest extends TestCase
 
     public function test_single_relation_null()
     {
-        $this->elements->register(RelatedElement::class)->install();
-
         $element = new RelatedElement();
 
         $relatedElement = $element->plainElement;
@@ -157,9 +152,6 @@ class ElementTest extends TestCase
 
     public function test_many_relation()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElements = [
             PlainElement::create([
                 'string' => 'test'
@@ -189,9 +181,6 @@ class ElementTest extends TestCase
 
     public function test_many_relations_again()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement1 = PlainElement::create([]);
         $plainElement2 = PlainElement::create([]);
 
@@ -216,9 +205,6 @@ class ElementTest extends TestCase
 
     public function test_many_relations_from_collection()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $relatedElement = RelatedElement::create([
             'plainElements' => $plainElements = [PlainElement::create([]), PlainElement::create([])]
         ]);
@@ -234,9 +220,6 @@ class ElementTest extends TestCase
 
     public function test_where_has_single_relation()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement = PlainElement::create([
             'string' => 'test',
             'boolean' => false
@@ -287,9 +270,6 @@ class ElementTest extends TestCase
 
     public function test_where_doesnt_have()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $relatedElement1 = RelatedElement::create([
             'plainElement' => PlainElement::create([
                 'string' => 'abcdef'
@@ -313,9 +293,6 @@ class ElementTest extends TestCase
 
     public function test_withs()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement = PlainElement::create([
             'string' => 'test'
         ]);
@@ -348,9 +325,6 @@ class ElementTest extends TestCase
 
     public function test_withs_again()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement1 = PlainElement::create([
             'string' => 'test'
         ]);
@@ -371,9 +345,6 @@ class ElementTest extends TestCase
 
     public function test_querying_relation_properties()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement1 = PlainElement::create([
             'string' => 'test'
         ]);
@@ -405,34 +376,28 @@ class ElementTest extends TestCase
 
     public function test_meta()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         /** @var Element $plainElement */
         $plainElement = PlainElement::create(['string' => 'string']);
 
         $meta = $plainElement->getMeta();
 
-        $this->assertSame(3, $meta['id']);
+        $this->assertSame(8, $meta['id']);
     }
 
     public function test_to_json()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         /** @var Element $plainElement */
         $plainElement = PlainElement::create(['string' => $string = 'string']);
 
         $json = $plainElement->toJson();
 
-        $this->assertSame(3, $json['meta']['id']);
+        $this->assertSame(8, $json['meta']['id']);
         $this->assertSame($string, $json['attributes']['string']);
         $this->assertSame('string', $json['properties']['string']['type']);
     }
 
     public function test_all()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         PlainElement::create(['string' => $string = 'string']);
         PlainElement::create(['integer' => $integer = -300]);
         PlainElement::create(['array' => $integer = ['one', 'two']]);
@@ -444,8 +409,6 @@ class ElementTest extends TestCase
 
     public function test_first_null()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $foundElement = PlainElement::first([]);
 
         $this->assertNull($foundElement);
@@ -459,8 +422,6 @@ class ElementTest extends TestCase
 
     public function test_exists()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $found = PlainElement::exists();
 
         $this->assertFalse($found);
@@ -474,8 +435,6 @@ class ElementTest extends TestCase
 
     public function test_scopes()
     {
-        $this->elements->register(ScopedElement::class)->install();
-
         $disabledElement = ScopedElement::create([
             'enabled' => false,
             'status' => 'disabled'
@@ -509,9 +468,6 @@ class ElementTest extends TestCase
 
     public function test_relation_call_method()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $plainElement = PlainElement::create([]);
 
         $relatedElement = RelatedElement::create([
@@ -523,8 +479,6 @@ class ElementTest extends TestCase
 
     public function test_invalid_builder_call()
     {
-        $this->elements->register(PlainElement::class)->install();
-
         $plainElement = PlainElement::create([]);
 
         $this->expectException(BadMethodCallException::class);
@@ -534,9 +488,6 @@ class ElementTest extends TestCase
 
     public function test_to_sql()
     {
-        $this->elements->register(PlainElement::class)->install();
-        $this->elements->register(RelatedElement::class)->install();
-
         $query = RelatedElement::whereHas('relatedElement', function (Builder $query) {
             $query->whereHas('plainElement', function (Builder $query) {
                 $query->where('string', 'string');
@@ -552,8 +503,6 @@ SQL;
 
     public function test_setters()
     {
-        $this->elements->register(SetterElement::class)->install();
-
         $element = new SetterElement();
 
         $element->status = 'something';
@@ -563,8 +512,6 @@ SQL;
 
     public function test_getters()
     {
-        $this->elements->register(GetterElement::class)->install();
-
         $element = new GetterElement();
 
         $element->status = 'something';
@@ -574,8 +521,6 @@ SQL;
 
     public function test_validation()
     {
-        $this->elements->register(ValidationElement::class)->install();
-
         $this->expectException(PropertyValidationFailedException::class);
 
         ValidationElement::create([]);
@@ -583,8 +528,6 @@ SQL;
 
     public function test_validation_again()
     {
-        $this->elements->register(ValidationElement::class)->install();
-
         $element = new ValidationElement();
 
         $this->expectException(PropertyValidationFailedException::class);
@@ -594,8 +537,6 @@ SQL;
 
     public function test_validation_again_again()
     {
-        $this->elements->register(ValidationElement::class)->install();
-
         $this->expectException(PropertyValidationFailedException::class);
 
         ValidationElement::create([
@@ -606,8 +547,6 @@ SQL;
 
     public function test_property_types()
     {
-        $this->elements->register(ValidationElement::class)->install();
-
         $element = new ValidationElement();
 
         $this->expectException(PropertyValueInvalidException::class);
@@ -620,5 +559,13 @@ SQL;
         $this->expectNotToPerformAssertions();
 
         // TODO: https://git.clickdigitalsolutions.co.uk/internal/elements/issues/4
+    }
+
+    public function test_faked_properties()
+    {
+        $element = PlainElement::factory();
+
+        $this->assertSame(PHP_INT_MAX, $element->unsigned_integer);
+        $this->assertSame(PHP_INT_MIN, $element->integer);
     }
 }
