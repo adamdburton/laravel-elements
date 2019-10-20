@@ -134,7 +134,6 @@ trait HasTypedProperties
      * @throws PropertyValidationFailedException
      * @throws PropertyValueInvalidException
      * @throws SingleRelationInvalidException
-     * @thr«ows PropertyNotRegisteredException
      */
     public function setAttribute($key, $value)
     {

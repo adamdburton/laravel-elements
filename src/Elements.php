@@ -29,7 +29,7 @@ class Elements
      */
     public function install()
     {
-        Log::debug('Registering and installing ElementType element.');
+//        Log::debug('Registering and installing ElementType element.');
 
         $this->register(ElementType::class)->install();
     }
@@ -52,7 +52,7 @@ class Elements
         $this->elementDefinitions[$definition->getClass()] = $definition;
         $this->elementAliases[$definition->getAlias()] = $definition->getClass();
 
-        Log::debug('Registering element.', ['element' => $definition->getClass()]);
+//        Log::debug('Registering element.', ['element' => $definition->getClass()]);
 
         return $definition;
     }

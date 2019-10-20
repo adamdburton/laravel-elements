@@ -10,6 +10,7 @@ use Orchestra\Testbench\TestCase as BaseTestCase;
 
 /**
  * Class TestCase
+ * @\PhpBench\Benchmark\Metadata\Annotations\BeforeMethods({"setUp"})
  */
 abstract class TestCase extends BaseTestCase
 {

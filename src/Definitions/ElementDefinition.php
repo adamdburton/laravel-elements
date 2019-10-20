@@ -93,13 +93,13 @@ class ElementDefinition implements DefinitionContract
 
         $properties = $this->getPropertyDefinitions();
 
-        Log::debug(
-            'Creating property models for element.',
-            [
-                'properties' => implode(', ', array_keys($properties)),
-                'element' => $this->getClass()
-            ]
-        );
+//        Log::debug(
+//            'Creating property models for element.',
+//            [
+//                'properties' => implode(', ', array_keys($properties)),
+//                'element' => $this->getClass()
+//            ]
+//        );
 
         $propertyModels = collect($properties)->map(function (PropertyDefinition $property) {
             return $property->install();
@@ -109,7 +109,7 @@ class ElementDefinition implements DefinitionContract
 
         static::$propertyModels = $propertyModels->all();
 
-        Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
+//        Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
 
         $element = ElementType::create([
             'class' => $this->getClass()
