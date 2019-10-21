@@ -563,7 +563,7 @@ SQL;
 
     public function test_faked_properties()
     {
-        $element = PlainElement::factory();
+        $element = PlainElement::mock();
 
         $this->assertSame(PHP_INT_MAX, $element->unsigned_integer);
         $this->assertSame(PHP_INT_MIN, $element->integer);

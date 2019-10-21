@@ -8,7 +8,7 @@
   "reports": {
     "elements": {
       "extends": "aggregate",
-      "break": ["benchmark", "groups"]
+      "break": ["groups", "benchmark"]
     }
   }
 }

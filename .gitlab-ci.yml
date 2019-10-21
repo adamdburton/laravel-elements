@@ -1,6 +1,7 @@
 stages:
   - setup
   - test
+  - bench
 
 image: edbizarro/gitlab-ci-pipeline-php:7.3
 
@@ -38,6 +39,14 @@ phpunit:
     - echo "SHOW tables;"| mysql -u "${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -h"${DB_HOST}" "${MYSQL_DATABASE}"
     - vendor/bin/phpunit --coverage-clover clover.xml --colors=never
     - php coverage-checker.php clover.xml 40
+
+phpbench:
+  stage: bench
+  dependencies:
+    - setup
+  script:
+    - php -v
+    - composer bench
 
 # phpcs:
 #  stage: test

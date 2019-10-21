@@ -37,7 +37,7 @@ class CreateBench extends Benchmark
      */
     public function bench_complex_element()
     {
-        PlainElement::factory()->create();
+        PlainElement::mock()->create([]);
     }
 
     /**
@@ -45,7 +45,7 @@ class CreateBench extends Benchmark
      */
     public function bench_complex_model()
     {
-        factory(AuthorModel::class)->create();
+        factory(AuthorModel::class)->create([]);
     }
 
     /**

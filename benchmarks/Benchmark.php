@@ -20,6 +20,7 @@ abstract class Benchmark extends TestCase
         parent::setUp();
 
         $this->loadMigrationsFrom(__DIR__ . '/assets/migrations');
+        $this->withFactories(__DIR__ . '/assets/factories');
 
         elements()->register(AuthorElement::class)->install();
         elements()->register(BookElement::class)->install();
