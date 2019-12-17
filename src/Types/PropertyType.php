@@ -2,6 +2,8 @@
 
 namespace Click\Elements\Types;
 
+use Click\Elements\Exceptions\Property\DoubleDecimalsNotValidException;
+use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Type;
 
 /**
@@ -37,5 +39,16 @@ class PropertyType extends Type
             static::RELATION,
             static::TIMESTAMP
         ];
+    }
+
+    /**
+     * @param int $decimals
+     * @throws DoubleDecimalsNotValidException
+     */
+    public static function validateDoubleDecimals(int $decimals)
+    {
+        if ($decimals < 1 || $decimals > 5) {
+            throw new DoubleDecimalsNotValidException($decimals);
+        }
     }
 }

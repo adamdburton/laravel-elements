@@ -2,6 +2,7 @@
 
 namespace Click\Elements\Schemas;
 
+use Click\Elements\Exceptions\Property\DoubleDecimalsNotValidException;
 use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
 use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
 use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
@@ -54,13 +55,18 @@ class ElementSchema extends Schema
 
     /**
      * @param $key
+     * @param int $decimals
      * @return PropertySchema
      * @throws PropertyAlreadyDefinedException
      * @throws PropertyKeyInvalidException
+     * @throws DoubleDecimalsNotValidException
      */
-    public function double($key)
+    public function double($key, $decimals = 2)
     {
-        return $this->add($key, PropertyType::DOUBLE);
+        PropertyType::validateDoubleDecimals($decimals);
+
+        return $this->add($key, PropertyType::DOUBLE)
+            ->decimals($decimals);
     }
 
     /**

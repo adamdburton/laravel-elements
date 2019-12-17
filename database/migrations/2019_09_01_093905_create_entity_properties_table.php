@@ -22,7 +22,7 @@ class CreateEntityPropertiesTable extends Migration
             $table->unsignedBigInteger('unsigned_integer_value', false)->nullable();
             $table->bigInteger('integer_value', false)->nullable();
             $table->boolean('boolean_value')->nullable();
-            $table->double('double_value', 8, 2)->nullable();
+            $table->double('double_value', 16, 5)->nullable();
             $table->string('string_value', 255)->nullable();
             $table->text('text_value')->nullable();
             $table->json('json_value')->nullable();
