@@ -1,18 +1,33 @@
 <?php
 
+use Click\Elements\Builder;
 use Click\Elements\Elements;
-use Click\Elements\Exceptions\ElementsNotInstalledException;
-use Illuminate\Container\Container;
+use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Illuminate\Contracts\Container\BindingResolutionException;
 
 if (!function_exists('elements')) {
     /**
      * @return Elements
-     * @throws BindingResolutionException
      */
     function elements()
     {
-        return Container::getInstance()->make(Elements::class);
+        try {
+            return app(Elements::class);
+        } catch (BindingResolutionException $e) {
+            // Unreachable.
+        }
+    }
+}
+
+if (!function_exists('element')) {
+    /**
+     * @param $elementType
+     * @return Builder
+     * @throws ElementNotRegisteredException
+     */
+    function element($elementType)
+    {
+        return elements()->getElementDefinition($elementType)->getBuilder();
     }
 }
 

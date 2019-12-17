@@ -3,18 +3,18 @@
 namespace Click\Elements\Benchmarks\Assets\Elements;
 
 use Click\Elements\Element;
-use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
-use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeAlreadyDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 
 class Author extends Element
 {
     /**
      * @param ElementSchema $schema
-     * @throws PropertyKeyInvalidException
-     * @throws PropertyAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws AttributeAlreadyDefinedException
      */
-    public function getDefinition(ElementSchema $schema)
+    public function buildDefinition(ElementSchema $schema)
     {
         $schema->string('name');
         $schema->unsignedInteger('born');

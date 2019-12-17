@@ -22,7 +22,7 @@ class UpdateBench extends Benchmark
     {
         parent::setUp();
 
-        $this->element = AuthorElement::createRaw([
+        $this->element = AuthorElement::create([
             'name' => 'Neal Stephenson',
             'born' => 1959
         ]);

@@ -5,14 +5,13 @@ namespace Click\Elements\Definitions;
 use Click\Elements\Builder;
 use Click\Elements\Contracts\DefinitionContract;
 use Click\Elements\Element;
-use Click\Elements\Elements\ElementType;
-use Click\Elements\Exceptions\Element\ElementNotInstalledException;
-use Click\Elements\Exceptions\Property\PropertyNotInstalledException;
-use Click\Elements\Exceptions\Property\PropertyNotRegisteredException;
-use Click\Elements\Models\Property;
+use Click\Elements\Exceptions\Attribute\AttributeAlreadyDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeKeyInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeNotDefinedException;
+use Click\Elements\Exceptions\AttributeSchema\AttributeSchemaClassInvalidException;
+use Click\Elements\Models\Attribute;
+use Click\Elements\Schemas\AttributeSchema;
 use Click\Elements\Schemas\ElementSchema;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Element definition container
@@ -20,58 +19,91 @@ use Illuminate\Support\Facades\Log;
 class ElementDefinition implements DefinitionContract
 {
     /**
-     * @var Collection
-     */
-    protected static $propertyModels;
-
-    /**
      * @var ElementSchema
      */
     protected $schema;
 
     /**
-     * @var Element
+     * @var string
      */
-    protected $element;
+    protected $elementClass;
 
     /**
-     * @var PropertyDefinition[]
+     * @var string
      */
-    protected $properties;
+    protected $elementAlias;
 
     /**
-     * @param Element $element
-     * @param ElementSchema $schema
+     * @var AttributeDefinition[]
      */
-    public function __construct(Element $element, ElementSchema $schema)
+    protected $attributes;
+
+    /**
+     * @var Attribute[]
+     */
+    protected $models = [];
+
+    /**
+     * @param string $elementClass
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     */
+    public function __construct(string $elementClass)
     {
-        $this->element = $element;
+        /** @var Element $instance */
+        $instance = new $elementClass;
+
+        $this->elementClass = $elementClass;
+        $this->elementAlias = $instance->getAlias();
+
+        $schema = new ElementSchema($instance);
+
+        $instance->buildMetaDefinition($schema);
+        $instance->buildDefinition($schema);
+
         $this->schema = $schema;
     }
 
     /**
-     * @return Property[]
-     * @throws ElementNotInstalledException
+     * @return void
      */
-    public function getPropertyModels()
+    public function install()
     {
-        if (!isset(static::$propertyModels[$this->getAlias()])) {
-            static::$propertyModels = Property::all()->groupBy('element');
+        foreach ($this->getAttributeDefinitions() as $attribute) {
+            if (!$attribute->isInstalled()) {
+                $this->models[$attribute->getKey()] = $attribute->install();
+            }
         }
-
-        if (!isset(static::$propertyModels[$this->getAlias()])) {
-            throw new ElementNotInstalledException($this->getClass());
-        }
-
-        return static::$propertyModels[$this->getAlias()]->keyBy('key')->all();
     }
 
     /**
-     * @return string
+     * @return AttributeDefinition[]
      */
-    public function getAlias()
+    public function getAttributeDefinitions()
     {
-        return $this->element->getAlias();
+        if (!$this->attributes) {
+            $this->attributes = collect($this->schema->getSchema())
+                ->map(function (AttributeSchema $schema) {
+                    return new AttributeDefinition($this, $schema);
+                })
+                ->all();
+        }
+
+        return $this->attributes;
+    }
+
+    /**
+     * @return Element
+     */
+    public function factory()
+    {
+        $class = $this->getClass();
+
+        /** @var Element $element */
+        $element = new $class();
+
+        return $element;
     }
 
     /**
@@ -79,92 +111,21 @@ class ElementDefinition implements DefinitionContract
      */
     public function getClass()
     {
-        return get_class($this->element);
+        return $this->elementClass;
     }
 
     /**
-     * @return Element
+     * @return string
      */
-    public function install()
+    public function getAlias()
     {
-        // ElementType is purposefully the first Element to be registered and installed because paradoxes.
-
-        // Install the properties required for the Element.
-
-        $properties = $this->getPropertyDefinitions();
-
-//        Log::debug(
-//            'Creating property models for element.',
-//            [
-//                'properties' => implode(', ', array_keys($properties)),
-//                'element' => $this->getClass()
-//            ]
-//        );
-
-        $propertyModels = collect($properties)->map(function (PropertyDefinition $property) {
-            return $property->install();
-        });
-
-        // Make a new ElementType.
-
-        static::$propertyModels = $propertyModels->all();
-
-//        Log::debug('Creating newly installed element.', ['element' => $this->getClass()]);
-
-        $element = ElementType::create([
-            'class' => $this->getClass()
-        ]);
-
-        return $element;
-    }
-
-    /**
-     * @return PropertyDefinition[]
-     */
-    public function getPropertyDefinitions()
-    {
-        if (!$this->properties) {
-            $this->properties = $this->buildPropertyDefinitions();
-        }
-
-        return $this->properties;
-    }
-
-    /**
-     * @return array
-     */
-    protected function buildPropertyDefinitions()
-    {
-        return collect($this->schema->getSchema())
-            ->map(function ($schema) {
-                return new PropertyDefinition($this, $schema);
-            })
-            ->all();
-    }
-
-    /**
-     * @param null $attributes
-     * @param null $meta
-     * @return Element
-     */
-    public function make($attributes = null, $meta = null)
-    {
-        $class = $this->getClass();
-
-        /** @var Element $element */
-        $element = new $class($attributes);
-
-        if ($meta) {
-            $element->setMeta($meta);
-        }
-
-        return $element;
+        return $this->elementAlias;
     }
 
     /**
      * @return Builder
      */
-    public function query()
+    public function getBuilder()
     {
         $class = $this->getClass();
 
@@ -176,31 +137,57 @@ class ElementDefinition implements DefinitionContract
      */
     public function getValidationRules()
     {
-        return collect($this->properties)->map(function (PropertyDefinition $property) {
-            return $property->getMeta('validation', null);
+        return collect($this->attributes)->map(function (AttributeDefinition $attribute) {
+            return $attribute->getMeta('validation', null);
         })->filter()->all();
     }
 
     /**
-     * @param string $key
-     * @return PropertyDefinition|null
+     * @param string $attribute
+     * @return AttributeDefinition|null
+     * @throws AttributeNotDefinedException
      */
-    public function getPropertyDefinition(string $key)
+    public function getAttributeDefinition(string $attribute)
     {
-        $properties = $this->getPropertyDefinitions();
+        $this->validateAttributeExists($attribute);
 
-        return $properties[$key];
+        $attributes = $this->getAttributeDefinitions();
+
+        return $attributes[$attribute];
     }
 
     /**
-     * @param string $property
-     * @return Property
-     * @throws ElementNotInstalledException
+     * @param string $attribute
+     * @throws AttributeNotDefinedException
      */
-    public function getPropertyModel(string $property)
+    protected function validateAttributeExists(string $attribute)
     {
-        $propertyModels = $this->getPropertyModels();
+        $attributes = $this->getAttributeDefinitions();
 
-        return $propertyModels[$property];
+        if (!isset($attributes[$attribute])) {
+            throw new AttributeNotDefinedException($attribute, $this);
+        }
+    }
+
+    /**
+     * @param string $attribute
+     * @return Attribute
+     * @throws AttributeNotDefinedException
+     */
+    public function getAttributeModel(string $attribute)
+    {
+        $this->validateAttributeExists($attribute);
+
+        $attributeModels = $this->getAttributeModels();
+
+        return $attributeModels[$attribute];
+    }
+
+    /**
+     * @return Attribute[]
+     */
+    public function getAttributeModels()
+    {
+        return $this->models = Attribute::all()->keyBy('key')->all();
     }
 }

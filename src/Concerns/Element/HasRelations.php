@@ -2,21 +2,22 @@
 
 namespace Click\Elements\Concerns\Element;
 
+use Click\Elements\Definitions\AttributeDefinition;
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Definitions\PropertyDefinition;
 use Click\Elements\Element;
+use Click\Elements\Exceptions\Attribute\AttributeNotDefinedException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
 use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Exceptions\Relation\RelationNotDefinedException;
 use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
-use Click\Elements\Types\PropertyType;
+use Click\Elements\Types\AttributeType;
 use Click\Elements\Types\RelationType;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Collection;
 
 /**
  * Trait HasRelations
  * @method ElementDefinition getElementDefinition()
+ * @method AttributeDefinition getAttributeDefinition($key)
  */
 trait HasRelations
 {
@@ -26,79 +27,84 @@ trait HasRelations
     protected $relations = [];
 
     /**
-     * @param $key
+     * @param string $relation
      * @param $value
      * @return HasRelations
      * @throws ManyRelationInvalidException
      * @throws SingleRelationInvalidException
+     * @throws AttributeNotDefinedException
      */
-    public function setRelation($key, $value)
+    public function setRelation(string $relation, $value)
     {
-        $propertyDefinition = $this->getElementDefinition()->getPropertyDefinition($key);
-        $relationType = $this->getRelationType($key);
+        $attributeDefinition = $this->getElementDefinition()->getAttributeDefinition($relation);
+        $relationType = $this->getRelationType($relation);
 
-        $this->validateRelationProperty($propertyDefinition, $value);
+        $this->validateRelationAttribute($attributeDefinition, $value);
 
         if ($relationType === RelationType::SINGLE) {
-            $this->setSingleRelation($key, $value);
+            $this->setSingleRelation($relation, $value);
         } elseif ($relationType === RelationType::MANY) {
-            $this->setManyRelations($key, $value);
+            $this->setManyRelations($relation, $value);
         }
 
         return $this;
     }
 
     /**
-     * @param $key
+     * @param string $relation
      * @return mixed
+     * @throws AttributeNotDefinedException
      */
-    public function getRelationType($key)
+    public function getRelationType(string $relation)
     {
-        $propertyDefinition = $this->getElementDefinition()->getPropertyDefinition($key);
+        $attributeDefinition = $this->getElementDefinition()->getAttributeDefinition($relation);
 
-        return $propertyDefinition->getMeta('relationType');
+        return $attributeDefinition->getMeta('relationType');
     }
 
     /**
-     * @param PropertyDefinition $definition
+     * @param AttributeDefinition $definition
      * @param $value
      * @throws ManyRelationInvalidException
      * @throws SingleRelationInvalidException
      */
-    protected function validateRelationProperty(PropertyDefinition $definition, $value)
+    protected function validateRelationAttribute(AttributeDefinition $definition, $value)
     {
         $relationType = $definition->getMeta('relationType');
-        $elementType = $definition->getMeta('elementType');
 
         if ($relationType === RelationType::SINGLE) {
-            $this->validateSingleRelationProperty($definition, $elementType, $value);
+            $this->validateSingleRelationAttribute($definition, $value);
         } elseif ($relationType === RelationType::MANY) {
-            $this->validateManyRelationProperty($definition, $elementType, $value);
+            $this->validateManyRelationAttribute($definition, $value);
         }
+
+        // TODO: Throw exception
     }
 
     /**
-     * @param PropertyDefinition $definition
+     * @param AttributeDefinition $definition
      * @param $value
-     * @param string $elementClass
      * @throws SingleRelationInvalidException
      */
-    protected function validateSingleRelationProperty(PropertyDefinition $definition, string $elementClass, $value)
+    protected function validateSingleRelationAttribute(AttributeDefinition $definition, $value)
     {
+        $elementClass = $definition->getMeta('elementType');
+
         if (!$value instanceof $elementClass && !is_int($value)) {
             throw new SingleRelationInvalidException($definition->getKey(), $elementClass, $value);
         }
     }
 
     /**
-     * @param PropertyDefinition $definition
-     * @param string $elementClass
+     * @param AttributeDefinition $definition
      * @param $value
      * @throws ManyRelationInvalidException
      */
-    protected function validateManyRelationProperty(PropertyDefinition $definition, string $elementClass, $value)
+    protected function validateManyRelationAttribute(AttributeDefinition $definition, $value)
     {
-        if (!is_array($value) && ! is_a($value, Collection::class)) {
+        $elementClass = $definition->getMeta('elementType');
+
+        if (!is_array($value) && !is_a($value, Collection::class)) {
             throw new ManyRelationInvalidException($definition->getKey(), $elementClass, $value);
         }
 
@@ -110,143 +116,169 @@ trait HasRelations
     }
 
     /**
-     * @param $key
+     * @param string $relation
      * @param $value
      */
-    protected function setSingleRelation($key, $value)
+    protected function setSingleRelation(string $relation, $value)
     {
         if ($value instanceof Element) {
-            $this->relations[$key] = $value;
-            $this->attributes[$key] = $value->getPrimaryKey();
+            $this->relations[$relation] = $value;
+            $this->attributes[$relation] = $value->getId();
         } else {
-            $this->attributes[$key] = $value;
+            $this->attributes[$relation] = $value;
         }
     }
 
     /**
-     * @param $key
+     * @param string $relation
      * @param $value
      */
-    protected function setManyRelations($key, $value)
+    protected function setManyRelations(string $relation, $value)
     {
         if ($value instanceof Collection) {
-            $this->setManyRelationsFromArray($key, $value->all());
-        } elseif (is_array($value)) {
+            $value = $value->all();
+        }
+
+        if (is_array($value) && count($value)) {
             $isArrayOfElements = is_a(array_values($value)[0], Element::class);
 
             if ($isArrayOfElements) {
-                $this->setManyRelationsFromArray($key, $value);
+                $this->setManyRelationsFromArray($relation, $value);
             } else {
-                $this->setManyRelationsFromKeys($key, $value);
+                $this->setManyRelationsFromIds($relation, $value);
             }
         }
+
+        // TODO: Throw exception
     }
 
     /**
-     * @param $key
-     * @param array $relations
+     * @param string $relation
+     * @param Element[] $relations
      * @return void
      */
-    protected function setManyRelationsFromArray($key, array $relations)
+    protected function setManyRelationsFromArray(string $relation, array $relations)
     {
-        $this->attributes[$key] = array_map(function (Element $element) {
-            return $element->getPrimaryKey();
-        }, $relations);
+        $this->attributes[$relation] = array_values(array_map(function (Element $element) {
+            return $element->getId();
+        }, $relations));
 
-        $this->relations[$key] = $relations;
+        $this->relations[$relation] = $relations;
     }
 
     /**
-     * @param $key
-     * @param array $keys
+     * @param string $relation
+     * @param int[] $ids
      * @return void
      */
-    protected function setManyRelationsFromKeys($key, array $keys)
+    protected function setManyRelationsFromIds(string $relation, array $ids)
     {
-        $this->attributes[$key] = $keys;
+        $this->attributes[$relation] = $ids;
     }
 
     /**
-     * @param $key
+     * @param string $relation
      * @return bool
      */
-    public function hasRelation($key)
+    public function hasRelation(string $relation)
     {
-        /** @var PropertyDefinition[] $properties */
-        $properties = $this->getElementDefinition()->getPropertyDefinitions();
+        /** @var AttributeDefinition[] $attributes */
+        $attributes = $this->getElementDefinition()->getAttributeDefinitions();
 
-        if (!isset($properties[$key])) {
+        if (!isset($attributes[$relation])) {
             return false;
         }
 
-        $property = $properties[$key];
+        $attribute = $attributes[$relation];
 
-        return $property->getType() === PropertyType::RELATION;
+        return $attribute->getType() === AttributeType::RELATION;
     }
 
     /**
-     * @param $key
+     * @param string relation
      * @return bool
      */
-    public function hasRelationLoaded($key)
+    public function hasRelationLoaded(string $relation)
     {
-        return isset($this->relations[$key]);
+        return isset($this->relations[$relation]);
     }
 
     /**
-     * @param $key
-     * @return Element|Collection
-     * @throws BindingResolutionException
-     * @throws ElementNotRegisteredException
-     * @throws RelationNotDefinedException
+     * @param string $relation
+     * @return Element|Collection|null
+     * @throws AttributeNotDefinedException
      */
-    public function getRelation($key)
+    public function getLoadedRelation(string $relation)
     {
-        $relationType = $this->getRelationType($key);
-        $propertyDefinition = $this->getElementDefinition()->getPropertyDefinition($key);
+        $relationType = $this->getRelationType($relation);
 
         if ($relationType === RelationType::SINGLE) {
-            return $this->getSingleRelation($key, $propertyDefinition);
+            return $this->relations[$relation] ?? null;
         } elseif ($relationType === RelationType::MANY) {
-            return $this->getManyRelations($key, $propertyDefinition);
-        }
-
-        throw new RelationNotDefinedException($key, $this->getElementDefinition());
-    }
-
-    /**
-     * @param string $key
-     * @param PropertyDefinition $definition
-     * @return Element
-     */
-    protected function getSingleRelation(string $key, PropertyDefinition $definition)
-    {
-        if (isset($this->relations[$key])) {
-            return $this->relations[$key];
+            return isset($this->relations[$relation]) ? new \Click\Elements\Collection($this->relations[$relation]) : null;
         }
 
         return null;
     }
 
     /**
-     * @param string $key
-     * @param PropertyDefinition $definition
-     * @return \Click\Elements\Collection|null
+     * @param string $relation
+     * @return \Click\Elements\Collection|Element|null
      * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
+     * @throws RelationNotDefinedException
+     * @throws AttributeNotDefinedException
      */
-    protected function getManyRelations(string $key, PropertyDefinition $definition)
+    public function getRelation(string $relation)
     {
-        if (isset($this->relations[$key])) {
-            return new \Click\Elements\Collection($this->relations[$key]);
+        $relationType = $this->getRelationType($relation);
+
+        if ($relationType === RelationType::SINGLE) {
+            return $this->getSingleRelation($relation);
+        } elseif ($relationType === RelationType::MANY) {
+            return $this->getManyRelations($relation);
         }
 
-        $primaryKeys = $this->attributes[$key];
+        throw new RelationNotDefinedException($relation, $this->getElementDefinition());
+    }
 
-        // TODO: Throw an Exception should this be called twice. Performance is essential.
+    /**
+     * @param string $relation
+     * @return Element
+     * @throws ElementNotRegisteredException
+     */
+    protected function getSingleRelation(string $relation)
+    {
+        if (!isset($this->attributes[$relation])) {
+            return null;
+        }
 
-        $elementType = $definition->getMeta('elementType');
+        $elementType = $this->getAttributeDefinition($relation)->getMeta('elementType');
 
-        return elements()->getElementDefinition($elementType)->query()->findMany($primaryKeys);
+        return element($elementType)->find($this->attributes[$relation]);
+    }
+
+    /**
+     * @param string $relation
+     * @return \Click\Elements\Collection|null
+     * @throws ElementNotRegisteredException
+     */
+    protected function getManyRelations(string $relation)
+    {
+        if (!isset($this->attributes[$relation])) {
+            return null;
+        }
+
+        $elementType = $this->getAttributeDefinition($relation)->getMeta('elementType');
+        $ids = $this->attributes[$relation];
+
+        return element($elementType)->findMany($ids);
+    }
+
+    /**
+     * @param string $relation
+     */
+    protected function unsetRelation(string $relation)
+    {
+        unset($this->relations[$relation]);
     }
 }

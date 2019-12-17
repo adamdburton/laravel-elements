@@ -16,7 +16,9 @@ class CollectionTest extends TestCase
         /** @var Collection $collection */
         $collection = PlainElement::all();
 
-        $this->assertSame($plainElement->getElementDefinition(), $collection->getElementType());
+//        dd($collection);
+
+        $this->assertEquals($plainElement->getElementDefinition()->getAlias(), $collection->getElementDefinitions()->first()->getAlias());
     }
 
     public function test_first()
@@ -28,6 +30,6 @@ class CollectionTest extends TestCase
         /** @var Collection $collection */
         $collection = PlainElement::all();
 
-        $this->assertSame($plainElement->getPrimaryKey(), $collection->first()->getPrimaryKey());
+        $this->assertSame($plainElement->getId(), $collection->first()->getId());
     }
 }

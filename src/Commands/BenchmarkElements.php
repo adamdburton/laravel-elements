@@ -43,7 +43,5 @@ class BenchmarkElements extends Command
     public function handle()
     {
         $this->elements->register(PlainElement::class)->install();
-
-
     }
 }

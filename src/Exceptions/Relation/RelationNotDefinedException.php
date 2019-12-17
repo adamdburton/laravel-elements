@@ -3,8 +3,9 @@
 namespace Click\Elements\Exceptions\Relation;
 
 use Click\Elements\Definitions\ElementDefinition;
+use Exception;
 
-class RelationNotDefinedException extends \Exception
+class RelationNotDefinedException extends Exception
 {
     public function __construct($key, ElementDefinition $elementDefinition)
     {

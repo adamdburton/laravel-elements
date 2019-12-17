@@ -32,8 +32,6 @@ abstract class TestCase extends BaseTestCase
 
         if ($this->elementsInstalled) {
             $this->runElementsMigration();
-
-            $this->artisan(InstallElements::class);
         }
     }
 

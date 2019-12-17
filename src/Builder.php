@@ -2,29 +2,34 @@
 
 namespace Click\Elements;
 
-use BadMethodCallException;
-use Click\Elements\Concerns\Builder\InteractsWithModels;
-use Click\Elements\Concerns\Builder\QueriesProperties;
-use Click\Elements\Concerns\Builder\QueriesRelatedElements;
+use Click\Elements\Concerns\Builder\InteractsWithEntities;
+use Click\Elements\Concerns\Builder\QueriesAttributes;
+use Click\Elements\Concerns\Builder\RaisesEvents;
+use Click\Elements\Definitions\AttributeDefinition;
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Definitions\PropertyDefinition;
-use Click\Elements\Exceptions\Element\ElementNotInstalledException;
+use Click\Elements\Exceptions\Attribute\AttributeNotDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeValidationFailedException;
+use Click\Elements\Exceptions\Attribute\AttributeValueTypeInvalidException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
+use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
+use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
+use Click\Elements\Models\Attribute;
 use Click\Elements\Models\Entity;
 use Closure;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\Builder as Eloquent;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
  * Element query builder
  */
 class Builder
 {
-    use QueriesProperties;
-    use QueriesRelatedElements;
-    use InteractsWithModels;
+    use ForwardsCalls;
+    use InteractsWithEntities;
+    use QueriesAttributes;
+    use RaisesEvents;
 
     /**
      * @var Element
@@ -34,7 +39,7 @@ class Builder
     /**
      * @var Eloquent
      */
-    protected $builder;
+    protected $query;
 
     /**
      * @var array
@@ -53,17 +58,17 @@ class Builder
      * @param $name
      * @param $arguments
      * @return Builder|mixed
-     * @throws BindingResolutionException
      * @throws ElementNotRegisteredException
      */
     public function __call($name, $arguments)
     {
-        if ($this->element->hasScope($name) ||
-            $this->element->hasRelation($name)) {
+        if ($this->element->hasScope($name) || $this->element->hasRelation($name)) {
             return $this->applyCallback($name, $arguments);
         }
 
-        throw new BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $name));
+        $this->forwardCallTo($this->getBase(), $name, $arguments);
+
+        return $this;
     }
 
     /**
@@ -71,7 +76,6 @@ class Builder
      * @param $arguments
      * @return $this|Builder
      * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
      */
     protected function applyCallback($name, $arguments)
     {
@@ -80,45 +84,50 @@ class Builder
         }
 
         if ($this->element->hasRelation($name)) {
-            return $this->getRelationQuery($name);
+            return $this->getRelationBuilder($name);
         }
 
         return $this;
     }
 
     /**
-     * @param string $relation
-     * @return Builder
-     * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
+     * @return Eloquent
      */
-    public function getRelationQuery(string $relation)
+    protected function getBase()
     {
-        $propertyDefinition = $this->getPropertyDefinition($relation);
+        if (!$this->query) {
+            $this->refresh();
+        }
 
-        $elementType = $propertyDefinition->getMeta('elementType');
-        $elementDefinition = elements()->getElementDefinition($elementType);
-
-        $element = $elementDefinition->make();
-
-        return $element->query();
+        return $this->query;
     }
 
     /**
-     * @param string $property
-     * @return PropertyDefinition|null
-     * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
+     * @return Builder
      */
-    protected function getPropertyDefinition(string $property)
+    public function refresh()
     {
-        return $this->getElementDefinition()->getPropertyDefinition($property);
+        $this->query = Entity::query()
+            ->with('attributeValues')
+            ->where('type', $this->element->getAlias());
+
+        return $this;
+    }
+
+    /**
+     * @param string $attribute
+     * @return AttributeDefinition|null
+     * @throws ElementNotRegisteredException
+     * @throws AttributeNotDefinedException
+     */
+    public function getAttributeDefinition(string $attribute)
+    {
+        return $this->getElementDefinition()->getAttributeDefinition($attribute);
     }
 
     /**
      * @return ElementDefinition
      * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
      */
     public function getElementDefinition()
     {
@@ -126,72 +135,125 @@ class Builder
     }
 
     /**
-     * @return bool
-     */
-    public function exists()
-    {
-        return $this->query()->exists();
-    }
-
-    /**
-     * @return Eloquent
-     */
-    public function query()
-    {
-        if (!$this->builder) {
-            $this->builder = Entity::query()->where('type', $this->element->getAlias());
-        }
-
-        return $this->builder;
-    }
-
-    /**
      * @return Collection
+     * @throws ElementNotRegisteredException
      */
     public function all()
     {
-        return $this->element->newQuery()->get();
+        return $this->refresh()->get();
+    }
+
+    /**
+     * @return Collection
+     * @throws ElementNotRegisteredException
+     */
+    public function get()
+    {
+        $elements = $this->fetchElements();
+        $relations = $this->fetchWiths($elements);
+
+        return $elements->setRelations($relations);
     }
 
     /**
      * @return Collection
      */
-    public function get()
+    protected function fetchElements()
     {
-        return $this->mapIntoElements($this->query()->get());
+        $entities = $this->getBase()->get();
+
+        return Collection::make($entities->map(function (Entity $entity) {
+            return $this->getElementDefinition()->factory()->setEntity($entity);
+        })->all());
     }
 
     /**
-     * @return string
+     * @param Collection $elements
+     * @return Collection
+     * @throws ElementNotRegisteredException
      */
-    public function toSql()
+    protected function fetchWiths(Collection $elements)
     {
-        return $this->query()->toSql();
+        $definitions = $this->getElementDefinition()->getAttributeDefinitions();
+
+        return collect($this->withs)->mapWithKeys(function ($a, $b) use ($elements, $definitions) {
+            $key = $a instanceof Closure ? $b : $a;
+            $callback = $a instanceof Closure ? $a : null;
+
+            $attributeDefinition = $definitions[$key];
+
+            $primaryKeys = $elements->map(function (Element $element) use ($key) {
+                $attributes = $element->getRawAttributes();
+
+                // TODO: Exception for primary key not found? (database modified)
+                // TODO: Add test for loading with for multiple elements, with and without that relation set
+
+                return $attributes[$key];
+            })->flatten()->unique()->all();
+
+            $builder = element($attributeDefinition->getMeta('elementType'));
+
+            if ($callback) {
+                $callback($builder);
+            }
+
+            $values = $builder->findMany($primaryKeys)->keyBy(function (Element $element) {
+                return $element->getId();
+            });
+
+            return [$key => $values];
+        });
     }
 
     /**
-     * @param $primaryKey
+     * @param array $ids
+     * @return Collection
+     * @throws ElementNotRegisteredException
+     */
+    public function findMany(array $ids)
+    {
+        $this->getBase()->whereIn('id', $ids);
+
+        return $this->get();
+    }
+
+    /**
+     * @param $id
      * @return Element
+     * @throws ElementNotRegisteredException
      */
-    public function find($primaryKey)
+    public function find($id)
     {
-        $this->query()->whereKey($primaryKey);
+        $this->getBase()->where('id', $id);
 
         return $this->first();
     }
 
     /**
      * @return Element|null
+     * @throws ElementNotRegisteredException
      */
     public function first()
     {
-        $entity = $this->query()->first();
+        $this->getBase()->limit(1);
 
-        if (!$entity) {
-            return null;
-        }
+        return $this->get()->first();
+    }
 
-        return $this->mapIntoElement($entity);
+    /**
+     * @return bool
+     */
+    public function exists()
+    {
+        return $this->getBase()->exists();
+    }
+
+    /**
+     * @return bool
+     */
+    public function toSql()
+    {
+        return Str::replaceArray('?', $this->getBase()->getBindings(), $this->getBase()->toSql());
     }
 
     /**
@@ -206,21 +268,68 @@ class Builder
     }
 
     /**
+     * @param Eloquent $builder
+     * @return Builder
+     */
+    public function setBase(Eloquent $builder)
+    {
+        $this->query = $builder;
+
+        return $this;
+    }
+
+    /**
      * @param array $attributes
      * @return Element
-     * @throws Exceptions\Property\PropertyValidationFailedException
-     * @throws Exceptions\Property\PropertyValueInvalidException
-     * @throws Exceptions\Relation\ManyRelationInvalidException
-     * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws ElementNotInstalledException
+     * @throws AttributeValidationFailedException
+     * @throws AttributeValueTypeInvalidException
+     * @throws ManyRelationInvalidException
+     * @throws SingleRelationInvalidException
+     * @throws AttributeNotDefinedException
      */
-    public function create(array $attributes)
+    public function create(array $attributes = [])
     {
-        $this->element->setAttributes($attributes);
+        $this->element->setAttributes($attributes); // Triggers validation
 
-        $entity = $this->createEntity($this->element->getRawAttributes());
+        $this->fireEvent('creating');
+        $this->fireEvent('saving');
 
-        return $this->element->setMeta($entity->getMeta());
+        $attributes = $this->element->getRawAttributes(); // Gets validated, normalised attributes
+
+        $entity = $this->createEntity($attributes);
+
+        $this->element->setEntity($entity);
+
+        $this->fireEvent('created');
+        $this->fireEvent('saved');
+
+        return $this->element;
+    }
+
+    /**
+     * @param array $attributes
+     * @return Element
+     * @throws AttributeNotDefinedException
+     * @throws AttributeValidationFailedException
+     * @throws AttributeValueTypeInvalidException
+     * @throws ManyRelationInvalidException
+     * @throws SingleRelationInvalidException
+     */
+    public function update($attributes = [])
+    {
+        $this->element->setAttributes($attributes); // Triggers validation
+
+        $this->fireEvent('updating');
+        $this->fireEvent('saving');
+
+        $attributes = $this->element->getRawAttributes(); // Gets validated, normalised attributes
+
+        $this->updateEntity($attributes);
+
+        $this->fireEvent('updated');
+        $this->fireEvent('saved');
+
+        return $this->element;
     }
 
     /**
@@ -228,117 +337,51 @@ class Builder
      *
      * @param array $attributes
      * @return Element
-     * @throws ElementNotInstalledException
      */
-    public function createRaw(array $attributes)
+//    public function createRaw(array $attributes)
+//    {
+//        $attributes = $this->mergeMetaAttributes($attributes);
+//
+//        $this->element->setRawAttributes($attributes);
+//
+//        $this->fireEvent('creating');
+//        $this->fireEvent('saving');
+//
+//        $this->element->setEntity($this->createEntity($attributes));
+//
+//        $this->fireEvent('created');
+//        $this->fireEvent('saved');
+//
+//        return $this->element;
+//    }
+
+    /**
+     * @param string $attribute
+     * @return Attribute
+     * @throws ElementNotRegisteredException
+     * @throws AttributeNotDefinedException
+     */
+    protected function getAttributeModel(string $attribute)
     {
-        $this->element->setRawAttributes($attributes);
-
-        $entity = $this->createRawEntity($attributes);
-
-        return $this->element->setMeta($entity->getMeta());
+        return $this->getElementDefinition()->getAttributeModel($attribute);
     }
 
     /**
      * @param array $attributes
      * @return Element
-     * @throws ElementNotInstalledException
-     * @throws Exceptions\Property\PropertyValidationFailedException
-     * @throws Exceptions\Property\PropertyValueInvalidException
-     * @throws Exceptions\Relation\ManyRelationInvalidException
-     * @throws Exceptions\Relation\SingleRelationInvalidException
      */
-    public function update(array $attributes)
-    {
-        $this->element->setAttributes($attributes);
-
-        $entity = $this->element->getEntity();
-
-        $this->updateEntity($entity, $this->element->getRawAttributes());
-
-        return $this->element->setMeta($entity->getMeta());
-    }
-
-    /**
-     * @param array $attributes
-     * @return Element
-     * @throws ElementNotRegisteredException
-     * @throws ElementNotInstalledException
-     * @throws BindingResolutionException
-     */
-    public function updateRaw(array $attributes)
-    {
-        $this->element->setRawAttributes($attributes);
-
-        $entity = $this->element->getEntity();
-
-        $this->updateEntity($entity, $attributes);
-
-        return $entity->toElement();
-    }
-
-    /**
-     * @param Eloquent $query
-     * @return Builder
-     */
-    public function setQuery(Eloquent $query)
-    {
-        $this->builder = $query;
-
-        return $this;
-    }
-
-    /**
-     * @param string $property
-     * @return Models\Property
-     * @throws BindingResolutionException
-     * @throws ElementNotInstalledException
-     * @throws ElementNotRegisteredException
-     */
-    protected function getPropertyModel(string $property)
-    {
-        return $this->getElementDefinition()->getPropertyModel($property);
-    }
-
-    /**
-     * @param Collection $elements
-     * @return \Click\Elements\Collection
-     * @throws BindingResolutionException
-     * @throws ElementNotRegisteredException
-     */
-    protected function getWiths(Collection $elements)
-    {
-        $definitions = $this->getElementDefinition()->getPropertyDefinitions();
-
-        return collect($this->withs)->mapWithKeys(function ($a, $b) use ($elements, $definitions) {
-            $key = $a instanceof Closure ? $b : $a;
-            $callback = $a instanceof Closure ? $a : null;
-
-            $propertyDefinition = $definitions[$key];
-
-            $primaryKeys = $elements->map(function (Entity $entity) use ($key) {
-                $element = $entity->toElement();
-                $attributes = $element->getRawAttributes();
-
-                return $attributes[$key];
-            })->unique()->all();
-
-            $query = elements()->getElementDefinition($propertyDefinition->getMeta('elementType'))->query();
-
-            if ($callback) {
-                $callback($query);
-            }
-
-            return [$key => $query->findMany($primaryKeys)->keyBy->getPrimaryKey()];
-        });
-    }
-
-    /**
-     * @param $primaryKeys
-     * @return Collection
-     */
-    public function findMany($primaryKeys)
-    {
-        return $this->mapIntoElements($this->query()->findMany($primaryKeys));
-    }
+//    public function updateRaw(array $attributes)
+//    {
+//        $this->fireEvent('updating');
+//        $this->fireEvent('saving');
+//
+//        $entity = $this->updateEntity($attributes);
+//
+//        $this->element->setEntity($entity);
+//
+//        $this->fireEvent('updated');
+//        $this->fireEvent('saved');
+//
+//        return $this->element;
+//    }
 }

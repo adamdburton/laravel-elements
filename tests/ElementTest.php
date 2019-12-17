@@ -5,8 +5,8 @@ namespace Click\Elements\Tests;
 use BadMethodCallException;
 use Click\Elements\Builder;
 use Click\Elements\Element;
-use Click\Elements\Exceptions\Property\PropertyValidationFailedException;
-use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeValidationFailedException;
+use Click\Elements\Exceptions\Attribute\AttributeValueTypeInvalidException;
 use Click\Elements\Exceptions\Relation\ManyRelationInvalidException;
 use Click\Elements\Exceptions\Relation\SingleRelationInvalidException;
 use Click\Elements\Tests\Assets\GetterElement;
@@ -38,23 +38,17 @@ class ElementTest extends TestCase
             'array' => $array = ['some', 'array', 'data'],
         ]);
 
+//        dd($element);
+
         $this->assertSame($string, $element->string);
         $this->assertSame($integer, $element->integer);
         $this->assertSame($array, $element->array);
-
-        $element = PlainElement::createRaw([
-            'string' => $string = 123,
-            'integer' => $integer = '123'
-        ]);
-
-        $this->assertSame($string, $element->string);
-        $this->assertSame($integer, $element->integer);
     }
 
     public function test_update()
     {
         $element = PlainElement::create([
-            'string' => 'some string',
+            'string' => 'some other string',
             'integer' => 123456789,
             'array' => ['some', 'array', 'data']
         ]);
@@ -68,12 +62,6 @@ class ElementTest extends TestCase
         $this->assertSame($string, $element->string);
         $this->assertSame($integer, $element->integer);
         $this->assertSame($array, $element->array);
-
-        $element->updateRaw([
-            'string' => 123
-        ]);
-
-        $this->assertSame(123, $element->string);
     }
 
     public function test_where()
@@ -86,15 +74,15 @@ class ElementTest extends TestCase
 
         $foundElement1 = PlainElement::where('string', $string)->first();
 
-        $this->assertSame($element->getPrimaryKey(), $foundElement1->getPrimaryKey());
+        $this->assertSame($element->getId(), $foundElement1->getId());
 
         $foundElement2 = PlainElement::where('integer', $integer)->first();
 
-        $this->assertSame($element->getPrimaryKey(), $foundElement2->getPrimaryKey());
+        $this->assertSame($element->getId(), $foundElement2->getId());
 
         $foundElement3 = PlainElement::where('array', $array)->first();
 
-        $this->assertSame($element->getPrimaryKey(), $foundElement3->getPrimaryKey());
+        $this->assertSame($element->getId(), $foundElement3->getId());
     }
 
     public function test_invalid_relation()
@@ -117,10 +105,19 @@ class ElementTest extends TestCase
 
     public function test_invalid_many_relation()
     {
+        $this->expectException(ManyRelationInvalidException::class);
+
         RelatedElement::create([
-            'plainElements' => [2]
+            'plainElements' => ['abc']
         ]);
 
+        RelatedElement::create([
+            'plainElements' => 2
+        ]);
+    }
+
+    public function test_invalid_many_relation_again()
+    {
         $this->expectException(ManyRelationInvalidException::class);
 
         RelatedElement::create([
@@ -138,7 +135,7 @@ class ElementTest extends TestCase
             'plainElement' => $plainElement
         ]);
 
-        $this->assertSame($plainElement->getPrimaryKey(), $relatedElement->plainElement->getPrimaryKey());
+        $this->assertSame($plainElement->getId(), $relatedElement->plainElement->getId());
     }
 
     public function test_single_relation_null()
@@ -165,8 +162,8 @@ class ElementTest extends TestCase
             'plainElements' => $plainElements
         ]);
 
-        $originalIds = collect($plainElements)->map->getPrimaryKey()->all();
-        $returnedIds = collect($relatedElement->plainElements)->map->getPrimaryKey()->all();
+        $originalIds = collect($plainElements)->map->getId()->all();
+        $returnedIds = collect($relatedElement->plainElements)->map->getId()->all();
 
         $this->assertSame($originalIds, $returnedIds);
 
@@ -174,7 +171,7 @@ class ElementTest extends TestCase
             'plainElements' => $plainElements
         ]);
 
-        $returnedIds = collect($relatedElement->plainElements)->map->getPrimaryKey()->all();
+        $returnedIds = collect($relatedElement->plainElements)->map->getId()->all();
 
         $this->assertSame($originalIds, $returnedIds);
     }
@@ -184,20 +181,23 @@ class ElementTest extends TestCase
         $plainElement1 = PlainElement::create([]);
         $plainElement2 = PlainElement::create([]);
 
-        $plainElementKeys = [$plainElement1->getPrimaryKey(), $plainElement2->getPrimaryKey()];
+        $plainElementKeys = [$plainElement1->getId(), $plainElement2->getId()];
+
+        $this->assertIsNumeric($plainElement1->getId());
+        $this->assertIsNumeric($plainElement2->getId());
 
         $relatedElement = RelatedElement::create([
             'plainElements' => $plainElementKeys
         ]);
 
-        $relatedElement = RelatedElement::find($relatedElement->getPrimaryKey());
+        $relatedElement = RelatedElement::find($relatedElement->getId());
 
         $plainElements = $relatedElement->plainElements;
 
         $this->assertSameSize($plainElementKeys, $plainElements);
 
         $keys = $plainElements->map(function (PlainElement $element) {
-            return $element->getPrimaryKey();
+            return $element->getId();
         })->all();
 
         $this->assertSame($plainElementKeys, $keys);
@@ -233,13 +233,13 @@ class ElementTest extends TestCase
             $query->where('string', 'test');
         })->first();
 
-        $this->assertSame($relatedElement->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $this->assertSame($relatedElement->getId(), $returnedElement->getId());
 
         $returnedElement = RelatedElement::whereHas('plainElement', function (Builder $query) {
             $query->where('boolean', false);
         })->first();
 
-        $this->assertSame($relatedElement->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $this->assertSame($relatedElement->getId(), $returnedElement->getId());
 
         $relatedElement2 = RelatedElement::create([
             'relatedElement' => $relatedElement
@@ -251,7 +251,7 @@ class ElementTest extends TestCase
             });
         })->first();
 
-        $this->assertSame($relatedElement2->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $this->assertSame($relatedElement2->getId(), $returnedElement->getId());
 
         $relatedElement3 = RelatedElement::create([
             'relatedElement' => $relatedElement2
@@ -265,10 +265,10 @@ class ElementTest extends TestCase
             });
         })->first();
 
-        $this->assertSame($relatedElement3->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $this->assertSame($relatedElement3->getId(), $returnedElement->getId());
     }
 
-    public function test_where_doesnt_have()
+    public function test_where_does_not_have()
     {
         $relatedElement1 = RelatedElement::create([
             'plainElement' => PlainElement::create([
@@ -276,19 +276,23 @@ class ElementTest extends TestCase
             ])
         ]);
 
-        $relatedElement1->plainElement;
-
         $relatedElement2 = RelatedElement::create([
+            'plainElement' => PlainElement::create([
+                'string' => 'abcdef'
+            ])
+        ]);
+
+        $relatedElement3 = RelatedElement::create([
             'plainElement' => PlainElement::create([
                 'string' => 'uvwxyz'
             ])
         ]);
 
-        $foundElement = RelatedElement::whereDoesntHave('plainElement', function(Builder $query) {
+        $foundElement = RelatedElement::whereDoesNotHave('plainElement', function (Builder $query) {
             $query->where('string', 'abcdef');
         })->first();
 
-        $this->assertSame($relatedElement2->getPrimaryKey(), $foundElement->getPrimaryKey());
+        $this->assertSame($relatedElement3->getId(), $foundElement->getId());
     }
 
     public function test_withs()
@@ -302,10 +306,10 @@ class ElementTest extends TestCase
         ]);
 
         /** @var RelatedElement $element */
-        $element = RelatedElement::with('plainElement')->find($related->getPrimaryKey());
+        $element = RelatedElement::with('plainElement')->find($related->getId());
 
         $this->assertTrue($element->hasRelationLoaded('plainElement'));
-        $this->assertSame($plainElement->getPrimaryKey(), $element->plainElement->getPrimaryKey());
+        $this->assertSame($plainElement->getId(), $element->plainElement->getId());
 
         $plainElement = PlainElement::create([
             'string' => 'test 123'
@@ -317,10 +321,10 @@ class ElementTest extends TestCase
 
         $element = RelatedElement::with(['plainElement' => function (Builder $query) {
             $query->where('string', 'test 123');
-        }])->find($related->getPrimaryKey());
+        }])->find($related->getId());
 
         $this->assertTrue($element->hasRelationLoaded('plainElement'));
-        $this->assertSame($plainElement->getPrimaryKey(), $element->plainElement->getPrimaryKey());
+        $this->assertSame($plainElement->getId(), $element->plainElement->getId());
     }
 
     public function test_withs_again()
@@ -333,7 +337,7 @@ class ElementTest extends TestCase
             'string' => 'test 2'
         ]);
 
-        $related = RelatedElement::create([
+        $relatedElement = RelatedElement::create([
             'plainElements' => [$plainElement1, $plainElement2]
         ]);
 
@@ -341,16 +345,17 @@ class ElementTest extends TestCase
         $loadedElement = RelatedElement::with('plainElements')->first();
 
         $this->assertTrue($loadedElement->hasRelationLoaded('plainElements'));
+        $this->assertEquals(2, $loadedElement->getLoadedRelation('plainElements')->count());
     }
 
     public function test_querying_relation_properties()
     {
         $plainElement1 = PlainElement::create([
-            'string' => 'test'
+            'string' => $plain1String = 'testing abc'
         ]);
 
         $plainElement2 = PlainElement::create([
-            'string' => 'test 2'
+            'string' => $plain2String = 'testing xyz'
         ]);
 
         $related1 = RelatedElement::create([
@@ -365,13 +370,17 @@ class ElementTest extends TestCase
             ]
         ]);
 
-        $returnedElement = RelatedElement::where('plainElement.string', 'test 2')->first();
+        $returnedElement = RelatedElement::where('plainElement.string', $plain1String)->first();
 
-        $this->assertSame($related1->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $this->assertSame($related1->getId(), $returnedElement->getId());
 
-//        $returnedElement = RelatedElement::where('plainElements.string', 'test')->first();
-//
-//        $this->assertSame($related2->getPrimaryKey(), $returnedElement->getPrimaryKey());
+        $returnedElement = RelatedElement::where('plainElements.string', $plain2String)->first();
+
+        $this->assertSame($related2->getId(), $returnedElement->getId());
+
+        $returnedElement = RelatedElement::where('plainElements.string', $plain1String)->first();
+
+        $this->assertSame($related2->getId(), $returnedElement->getId());
     }
 
     public function test_meta()
@@ -381,7 +390,8 @@ class ElementTest extends TestCase
 
         $meta = $plainElement->getMeta();
 
-        $this->assertSame(8, $meta['id']);
+        $this->assertIsNumeric($meta['id']);
+        $this->assertIsString($meta['type']);
     }
 
     public function test_to_json()
@@ -391,9 +401,12 @@ class ElementTest extends TestCase
 
         $json = $plainElement->toJson();
 
-        $this->assertSame(8, $json['meta']['id']);
+        $this->assertIsNumeric($json['meta']['id']);
+        $this->assertIsArray($json['attributes']);
+        $this->assertIsArray($json['values']);
+
         $this->assertSame($string, $json['attributes']['string']);
-        $this->assertSame('string', $json['properties']['string']['type']);
+        $this->assertSame('string', $json['values']['string']['type']);
     }
 
     public function test_all()
@@ -447,19 +460,19 @@ class ElementTest extends TestCase
 
         $foundElement = ScopedElement::enabled()->first();
 
-        $this->assertSame($enabledElement->getPrimaryKey(), $foundElement->getPrimaryKey());
+        $this->assertSame($enabledElement->getId(), $foundElement->getId());
 
         $foundElement = ScopedElement::disabled()->first();
 
-        $this->assertSame($disabledElement->getPrimaryKey(), $foundElement->getPrimaryKey());
+        $this->assertSame($disabledElement->getId(), $foundElement->getId());
 
         $foundElement = ScopedElement::status('enabled')->first();
 
-        $this->assertSame($enabledElement->getPrimaryKey(), $foundElement->getPrimaryKey());
+        $this->assertSame($enabledElement->getId(), $foundElement->getId());
 
         $foundElement = ScopedElement::status('disabled')->first();
 
-        $this->assertSame($disabledElement->getPrimaryKey(), $foundElement->getPrimaryKey());
+        $this->assertSame($disabledElement->getId(), $foundElement->getId());
 
         $foundElement = ScopedElement::status('wefwefwfwf')->first();
 
@@ -468,13 +481,15 @@ class ElementTest extends TestCase
 
     public function test_relation_call_method()
     {
-        $plainElement = PlainElement::create([]);
+        $plainElement = PlainElement::create([
+            'string' => 'abc'
+        ]);
 
         $relatedElement = RelatedElement::create([
             'plainElement' => $plainElement
         ]);
 
-        $this->assertSame($plainElement->getPrimaryKey(), $relatedElement->plainElement()->first()->getPrimaryKey());
+        $this->assertSame($plainElement->getId(), $relatedElement->plainElement()->first()->getId());
     }
 
     public function test_invalid_builder_call()
@@ -495,10 +510,15 @@ class ElementTest extends TestCase
         });
 
         $sql = <<<SQL
-select * from `elements_entities` where `type` = ? and exists (select * from `elements_entities` as `laravel_reserved_0` inner join `elements_entity_properties` on `laravel_reserved_0`.`id` = `elements_entity_properties`.`unsigned_integer_value` where `elements_entities`.`id` = `elements_entity_properties`.`entity_id` and `property_id` = ? and exists (select * from `elements_entities` inner join `elements_entity_properties` on `elements_entities`.`id` = `elements_entity_properties`.`unsigned_integer_value` where `laravel_reserved_0`.`id` = `elements_entity_properties`.`entity_id` and `property_id` = ? and exists (select * from `elements_properties` inner join `elements_entity_properties` on `elements_properties`.`id` = `elements_entity_properties`.`property_id` where `elements_entities`.`id` = `elements_entity_properties`.`entity_id` and `property_id` = ? and `string_value` = ?)))
+select * from `elements_entities` where `type` = relatedElement and exists (select * from `elements_entities` as `laravel_reserved_0` inner join `elements_values` on `laravel_reserved_0`.`id` = `elements_values`.`unsigned_integer_value` where `elements_entities`.`id` = `elements_values`.`entity_id` and `attribute_id` = ? and exists (select * from `elements_entities` inner join `elements_values` on `elements_entities`.`id` = `elements_values`.`unsigned_integer_value` where `laravel_reserved_0`.`id` = `elements_values`.`entity_id` and `attribute_id` = ? and exists (select * from `elements_attributes` inner join `elements_values` on `elements_attributes`.`id` = `elements_values`.`attribute_id` where `elements_entities`.`id` = `elements_values`.`entity_id` and `attribute_id` = ? and `string_value` = string)))
 SQL;
 
-        $this->assertSame(strlen($sql), strlen($query->toSql()));
+        $expected = preg_replace('/laravel_reserved_\d+/', 'laravel_reserved_?', $sql);
+
+        $actual = preg_replace('/laravel_reserved_\d+/', 'laravel_reserved_?', $query->toSql());
+        $actual = preg_replace('/`attribute_id` = \d+/', '`attribute_id` = ?', $actual);
+
+        $this->assertSame($expected, $actual);
     }
 
     public function test_setters()
@@ -521,7 +541,7 @@ SQL;
 
     public function test_validation()
     {
-        $this->expectException(PropertyValidationFailedException::class);
+        $this->expectException(AttributeValidationFailedException::class);
 
         ValidationElement::create([]);
     }
@@ -530,14 +550,14 @@ SQL;
     {
         $element = new ValidationElement();
 
-        $this->expectException(PropertyValidationFailedException::class);
+        $this->expectException(AttributeValidationFailedException::class);
 
         $element->string = '';
     }
 
     public function test_validation_again_again()
     {
-        $this->expectException(PropertyValidationFailedException::class);
+        $this->expectException(AttributeValidationFailedException::class);
 
         ValidationElement::create([
             'string' => 'this_is_required',
@@ -545,11 +565,11 @@ SQL;
         ]);
     }
 
-    public function test_property_types()
+    public function test_attribute_validation()
     {
         $element = new ValidationElement();
 
-        $this->expectException(PropertyValueInvalidException::class);
+        $this->expectException(AttributeValueTypeInvalidException::class);
 
         $element->json = 123;
     }
@@ -561,7 +581,7 @@ SQL;
         // TODO: https://git.clickdigitalsolutions.co.uk/internal/elements/issues/4
     }
 
-    public function test_faked_properties()
+    public function test_faked_attributes()
     {
         $element = PlainElement::mock();
 

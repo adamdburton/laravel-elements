@@ -3,18 +3,18 @@
 namespace Click\Elements\Tests\Assets;
 
 use Click\Elements\Element;
-use Click\Elements\Exceptions\Property\PropertyAlreadyDefinedException;
-use Click\Elements\Exceptions\Property\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeAlreadyDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeKeyInvalidException;
 use Click\Elements\Schemas\ElementSchema;
 
 class ValidationElement extends Element
 {
     /**
      * @param ElementSchema $schema
-     * @throws PropertyAlreadyDefinedException
-     * @throws PropertyKeyInvalidException
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
      */
-    public function getDefinition(ElementSchema $schema)
+    public function buildDefinition(ElementSchema $schema)
     {
         $schema->string('string')->validation('required');
         $schema->string('email')->validation('sometimes|email');

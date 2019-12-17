@@ -2,75 +2,58 @@
 
 namespace Click\Elements;
 
-use Carbon\Carbon;
+use Click\Elements\Concerns\Element\HasAttributes;
+use Click\Elements\Concerns\Element\HasMeta;
 use Click\Elements\Concerns\Element\HasScopes;
-use Click\Elements\Concerns\Element\HasTypedProperties;
 use Click\Elements\Concerns\Element\MocksElements;
 use Click\Elements\Contracts\ElementContract;
+use Click\Elements\Definitions\AttributeDefinition;
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Exceptions\Property\PropertyValueInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeAlreadyDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeKeyInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeValueTypeInvalidException;
+use Click\Elements\Exceptions\AttributeSchema\AttributeSchemaClassInvalidException;
+use Click\Elements\Models\Attribute;
 use Click\Elements\Models\Entity;
+use Click\Elements\Schemas\ElementSchema;
+use Click\Elements\Types\AttributeType;
+use Click\Elements\Types\RelationType;
 use Closure;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ForwardsCalls;
 
 /**
  * The base Element class. You should extend this!
  *
- * @method static Element create(array $attributes)
- * @see Builder::create()
+ * @method static Element find($id)
+ * @see Builder::find()
  *
- * @method static Element createRaw(array $attributes)
- * @see Builder::createRaw()
- *
- * @method static Element update(array $attributes)
- * @see Builder::update()
- *
- * @method static Element updateRaw(array $attributes)
- * @see Builder::updateRaw()
- *
- * @method static Builder where($property, $operator = '=', $value = null)
+ * @method static Builder where($attribute, $operator = '=', $value = null)
  * @see Builder::where()
  *
  * @method static Builder delete()
  * @see Builder::delete()
  *
- * @method static Builder has($property, Closure $callback)
+ * @method static Builder has($attribute, Closure $callback)
  * @see Builder::has()
  *
- * @method static Builder doesntHave($property, Closure $callback)
+ * @method static Builder doesntHave($attribute, Closure $callback)
  * @see Builder::doesntHave()
  *
- * @method static Builder whereHas($property, Closure $callback)
+ * @method static Builder whereHas($attribute, Closure $callback)
  * @see Builder::whereHas()
  *
- * @method static Builder whereDoesntHave($property, Closure $callback)
- * @see Builder::whereDoesntHave()
+ * @method static Builder whereDoesNotHave($attribute, Closure $callback)
+ * @see Builder::whereDoesNotHave()
  *
  */
 abstract class Element implements ElementContract
 {
-    use HasTypedProperties;
+    use HasAttributes;
     use HasScopes;
+    use HasMeta;
     use ForwardsCalls;
     use MocksElements;
-
-    /**
-     * @var int
-     */
-    protected $primaryKey;
-
-    /**
-     * @var Carbon
-     */
-    protected $createdAt;
-
-    /**
-     * @var Carbon
-     */
-    protected $updatedAt;
 
     /**
      * @var string
@@ -88,17 +71,22 @@ abstract class Element implements ElementContract
     protected $query;
 
     /**
+     * @var Entity
+     */
+    protected $entity;
+
+    /**
      * @param null $attributes
-     * @param bool $raw
-     * @throws Exceptions\Property\PropertyValidationFailedException
+     * @throws AttributeValueTypeInvalidException
+     * @throws Exceptions\Attribute\AttributeNotDefinedException
+     * @throws Exceptions\Attribute\AttributeValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws PropertyValueInvalidException
      */
-    public function __construct($attributes = null, $raw = false)
+    public function __construct($attributes = null)
     {
         if ($attributes) {
-            $raw ? $this->setRawAttributes($attributes) : $this->setAttributes($attributes);
+            $this->setAttributes($attributes);
         }
     }
 
@@ -106,10 +94,11 @@ abstract class Element implements ElementContract
      * @param $method
      * @param $parameters
      * @return mixed
-     * @throws Exceptions\Property\PropertyValidationFailedException
+     * @throws Exceptions\Attribute\AttributeValidationFailedException
      * @throws Exceptions\Relation\ManyRelationInvalidException
      * @throws Exceptions\Relation\SingleRelationInvalidException
-     * @throws PropertyValueInvalidException
+     * @throws AttributeValueTypeInvalidException
+     * @throws Exceptions\Attribute\AttributeNotDefinedException
      */
     public static function __callStatic($method, $parameters)
     {
@@ -123,19 +112,7 @@ abstract class Element implements ElementContract
      */
     public function __call($method, $parameters)
     {
-        return $this->forwardCallTo($this->query(), $method, $parameters);
-    }
-
-    /**
-     * @return Builder
-     */
-    public function query()
-    {
-        if (!$this->query) {
-            $this->query = $this->newQuery();
-        }
-
-        return $this->query;
+        return $this->forwardCallTo($this->newQuery(), $method, $parameters);
     }
 
     /**
@@ -147,60 +124,27 @@ abstract class Element implements ElementContract
     }
 
     /**
-     * @param array $meta
-     * @return Element
-     */
-    public function setMeta(array $meta)
-    {
-        if (isset($meta['id'])) {
-            $this->primaryKey = $meta['id'];
-        }
-
-        if (isset($meta['created_at'])) {
-            $this->createdAt = $meta['created_at'];
-        }
-
-        if (isset($meta['updated_at'])) {
-            $this->updatedAt = $meta['updated_at'];
-        }
-
-        return $this;
-    }
-
-    /**
      * @return array
-     * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
      */
     public function toJson()
     {
         return [
             'meta' => $this->getMeta(),
             'attributes' => $this->getAttributes(),
-            'properties' => collect($this->getElementDefinition()->getPropertyDefinitions())->map->toJson()->all()
+            'values' => $this->getAttributeValues()
         ];
     }
 
     /**
      * @return array
      */
-    public function getMeta()
+    protected function getAttributeValues()
     {
-        return [
-            'id' => $this->primaryKey,
-            'created_at' => $this->createdAt,
-            'updated_at' => $this->updatedAt,
-        ];
-    }
+        $definitions = collect($this->getElementDefinition()->getAttributeDefinitions());
 
-    /**
-     * @return ElementDefinition
-     * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
-     */
-    public function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->getAlias());
+        return $definitions->map(function (AttributeDefinition $definition) {
+            return $definition->toJson();
+        })->all();
     }
 
     /**
@@ -216,14 +160,101 @@ abstract class Element implements ElementContract
      */
     public function getEntity()
     {
-        return Entity::findOrFail($this->getPrimaryKey());
+        if (!isset($this->entity)) {
+            $this->entity = Entity::findOrFail($this->getId());
+        }
+
+        return $this->entity;
     }
 
     /**
-     * @return int
+     * @param Entity $entity
+     * @return Element
      */
-    public function getPrimaryKey()
+    public function setEntity(Entity $entity)
     {
-        return $this->primaryKey;
+        $this->entity = $entity;
+
+        $attributes = $this->getEntityAttributeValues();
+
+        $this->setRawAttributes($attributes);
+
+        $this->setMeta($entity->getMeta());
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getEntityAttributeValues()
+    {
+        $values = $this->entity->attributeValues;
+
+        return $values->mapToDictionary(function (Attribute $attribute) {
+            return [$attribute->key => $attribute->getEntityAttributeValue()];
+        })->mapWithKeys(function ($values, $key) {
+            $attributeDefinition = $this->getAttributeDefinition($key);
+
+            if ($attributeDefinition->getType() === AttributeType::RELATION) {
+                $relationType = $attributeDefinition->getMeta('relationType');
+
+                if ($relationType === RelationType::SINGLE) {
+                    $values = $values[0];
+                }
+            } else {
+                $values = $values[0]; // Grab the first value by key
+            }
+
+            return [$key => $values];
+        })->all();
+    }
+
+    /**
+     * @param array $meta
+     * @return Element
+     */
+    public function setMeta(array $meta)
+    {
+        if (isset($meta['id'])) {
+            $this->id = $meta['id'];
+        }
+
+        if (isset($meta['type'])) {
+            $this->type = $meta['type'];
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return ElementDefinition
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     */
+    public function getDefinition()
+    {
+        return new ElementDefinition($this->getClass());
+    }
+
+    /**
+     * @return string
+     */
+    public function getClass()
+    {
+        return get_class($this);
+    }
+
+    /**
+     * @param ElementSchema $schema
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     */
+    public function buildMetaDefinition(ElementSchema $schema)
+    {
+        $schema->timestamp('createdAt');
+        $schema->timestamp('updatedAt');
     }
 }

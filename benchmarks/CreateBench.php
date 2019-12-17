@@ -61,7 +61,7 @@ class CreateBench extends Benchmark
         BookElement::create([
             'name' => 'Snow Crash',
             'released' => 1992,
-            'author' => $author->getPrimaryKey()
+            'author' => $author->getId()
         ]);
     }
 

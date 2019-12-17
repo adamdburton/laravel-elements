@@ -7,7 +7,7 @@ use Click\Elements\Schemas\ElementSchema;
 
 class BadKeyNameElement extends Element
 {
-    public function getDefinition(ElementSchema $schema)
+    public function buildDefinition(ElementSchema $schema)
     {
         $schema->string(' ');
         $schema->string('_');

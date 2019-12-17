@@ -6,3 +6,5 @@ phpunit.xml
 .idea
 .DS_Store
 .php_cs.cache
+.phpunit.result.cache
+clover.xml

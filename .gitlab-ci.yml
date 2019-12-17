@@ -1,7 +1,7 @@
 stages:
   - setup
   - test
-  - bench
+#  - bench
 
 image: edbizarro/gitlab-ci-pipeline-php:7.3
 
@@ -40,14 +40,13 @@ phpunit:
     - vendor/bin/phpunit --coverage-clover clover.xml --colors=never
     - php coverage-checker.php clover.xml 40
 
-phpbench:
-  stage: bench
-  dependencies:
-    - setup
-    - phpunit
-  script:
-    - php -v
-    - composer bench
+#phpbench:
+#  stage: bench
+#  dependencies:
+#    - setup
+#  script:
+#    - php -v
+#    - composer bench
 
 # phpcs:
 #  stage: test

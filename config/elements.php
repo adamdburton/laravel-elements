@@ -4,15 +4,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Auto Install Elements
+    | Default Locale
     |--------------------------------------------------------------------------
     |
-    | Should new and updated elements be automatically installed? This will
-    | result in extra database queries on each request and should be turned
-    | OFF in production.
+    | The default locale to use when the 'current' app locale is unavailable.
     |
     */
 
-    'auto_install' => env('ELEMENTS_AUTO_INSTALL', false)
+    'default_locale' => env('ELEMENTS_DEFAULT_LOCALE', null),
 
 ];

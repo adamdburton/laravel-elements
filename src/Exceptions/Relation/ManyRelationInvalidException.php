@@ -14,7 +14,7 @@ class ManyRelationInvalidException extends Exception
 
         parent::__construct(
             sprintf(
-                'Relation "%s" can only be set to an array pr collection of "%s" instances or array of keys, "%s" given.',
+                'Relation "%s" can only be set to an array or collection of "%s" instances or array of keys, but "%s" given.',
                 $key,
                 $elementClass,
                 gettype($value) . ' (' . implode(', ', $types) . ')'

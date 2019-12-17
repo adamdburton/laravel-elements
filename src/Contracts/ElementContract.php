@@ -13,5 +13,5 @@ interface ElementContract
      * @param ElementSchema $schema
      * @return void
      */
-    public function getDefinition(ElementSchema $schema);
+    public function buildDefinition(ElementSchema $schema);
 }

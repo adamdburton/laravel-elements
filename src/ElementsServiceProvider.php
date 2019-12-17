@@ -2,7 +2,6 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Commands\InstallElements;
 use Click\Elements\Commands\ListElements;
 use Click\Elements\Commands\MakeElement;
 use Click\Elements\Events\ModelSaved;
@@ -29,20 +28,11 @@ class ElementsServiceProvider extends ServiceProvider
      *
      * @return void
      * @throws BindingResolutionException
-     * @throws Exceptions\Element\ElementClassInvalidException
-     * @throws Exceptions\Element\ElementNotInstalledException
-     * @throws Exceptions\ElementsNotInstalledException
-     * @throws Exceptions\Property\PropertyKeyInvalidException
-     * @throws Exceptions\TablesMissingException
      */
     public function boot()
     {
         $this->bootListeners();
         $this->bootObservers();
-
-//        if (config('elements.auto_install')) {
-//            elements()->install();
-//        }
 
         if ($this->app->runningInConsole()) {
             $this->bootForConsole();
@@ -72,18 +62,16 @@ class ElementsServiceProvider extends ServiceProvider
 
     /**
      * @return void
-     * @throws BindingResolutionException
      */
     protected function bootForConsole()
     {
-        $this->publishes([
-            __DIR__ . '/../config/elements.php' => config_path('elements.php'),
-        ], 'elements.config');
+//        $this->publishes([
+//            __DIR__ . '/../config/elements.php' => config_path('elements.php'),
+//        ], 'elements.config');
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $this->commands([
-            InstallElements::class,
             ListElements::class,
             MakeElement::class
         ]);
@@ -94,7 +82,7 @@ class ElementsServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/elements.php', 'elements');
+//        $this->mergeConfigFrom(__DIR__ . '/../config/elements.php', 'elements');
 
         $this->app->singleton(Elements::class, function ($app) {
             return new Elements();

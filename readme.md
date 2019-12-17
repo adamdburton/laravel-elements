@@ -2,9 +2,24 @@
 
 ![Elements](https://i.imgur.com/byzJHiI.png)
 
-```
-// TODO: Write this!
-```
+Elements is an Eloquent-like model wrapper based on the **Entity--Attribute--Value** model with powerful additional features that lets developers forget about database schemas, migrations, pivot tables, foreign keys and validation and focus on what matters - functionality.
+
+### Design Principals
+
+* Take schema declaration and value type checking away from the database layer.
+* Have fluent, expressive, editable schema declarations in code instead of migrations.
+* Provide strong typing checking for attributes.
+* Support locales, versioning, searching and validation.
+* Facilitate and eloquent-like syntax where possible.
+* Allow binding to models with optional two-way synchronisation.
+* Give much better exception handling options to developers.
+* Not interfere with any existing application setup.
+
+### What is EAV?
+
+> Entity–attribute–value model (EAV) is a data model to encode, in a space-efficient manner, entities where the number of attributes (properties, parameters) that can be used to describe them is potentially vast, but the number that will actually apply to a given entity is relatively modest. 
+>
+> -- <cite>[Wikipedia][1]</cite>
 
 ## Installation  
   
@@ -78,22 +93,6 @@ You can generate elements for use with [two-way binding](#two-way-binding) by sp
 
 ```bash
 $ php artisan make:element MyElement --model=App\\MyModel
-```
-  
-### Installing and Updating Elements
-
-Once you've defined properties for a new element or updated an existing element, run the install command to commit changes to the database.
-
-```bash  
-$ php artisan elements:install  
-```
-  
-**You need to do this whenever any changes are made to element schemas.**
-  
-You can bypass the need to run the command by adding this to your `.env` file. This is useful for local development.
-  
-```ini  
-ELEMENTS_AUTO_INSTALL=true  
 ```
 
 ### Using Elements in your Application
@@ -260,3 +259,4 @@ Proprietary. Please see the [license file](license.md) for more information.
 [link-author]: https://github.com/click  
 [link-contributors]: ../../contributors
 
+[1]:https://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model

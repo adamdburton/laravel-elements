@@ -3,11 +3,8 @@
 namespace Click\Elements;
 
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Elements\ElementType;
 use Click\Elements\Exceptions\Element\ElementClassInvalidException;
 use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Schemas\ElementSchema;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Registers, instantiates and persists Elements.
@@ -25,34 +22,21 @@ class Elements
     protected $elementAliases = [];
 
     /**
-     * @throws ElementClassInvalidException
-     */
-    public function install()
-    {
-//        Log::debug('Registering and installing ElementType element.');
-
-        $this->register(ElementType::class)->install();
-    }
-
-    /**
      * @param string $class
      * @return ElementDefinition
      * @throws ElementClassInvalidException
+     * @throws Exceptions\Attribute\AttributeAlreadyDefinedException
+     * @throws Exceptions\Attribute\AttributeKeyInvalidException
      */
     public function register(string $class)
     {
         $this->validateClass($class);
 
-        /** @var Element $element */
-        $element = new $class;
-        $element->getDefinition($schema = new ElementSchema($element));
+        $definition = $this->getDefinitionForClass($class);
+        $alias = $definition->getAlias();
 
-        $definition = new ElementDefinition($element, $schema);
-
-        $this->elementDefinitions[$definition->getClass()] = $definition;
-        $this->elementAliases[$definition->getAlias()] = $definition->getClass();
-
-//        Log::debug('Registering element.', ['element' => $definition->getClass()]);
+        $this->elementDefinitions[$class] = $definition;
+        $this->elementAliases[$alias] = $class;
 
         return $definition;
     }
@@ -69,17 +53,26 @@ class Elements
     }
 
     /**
+     * @param string $class
+     * @return ElementDefinition
+     * @throws Exceptions\Attribute\AttributeAlreadyDefinedException
+     * @throws Exceptions\Attribute\AttributeKeyInvalidException
+     */
+    protected function getDefinitionForClass(string $class)
+    {
+        return new ElementDefinition($class);
+    }
+
+    /**
      * @param $type
-     * @param array $attributes
-     * @param array $meta
-     * @return Element
+     * @return ElementDefinition
      * @throws ElementNotRegisteredException
      */
-    public function make($type, $attributes = null, $meta = null)
+    public function getElementDefinition(string $type)
     {
-        $this->resolveType($type);
+        $type = $this->resolveType($type);
 
-        return $this->getElementDefinition($type)->make($attributes, $meta);
+        return $this->elementDefinitions[$type];
     }
 
     /**
@@ -110,22 +103,22 @@ class Elements
     }
 
     /**
-     * @param $type
-     * @return ElementDefinition
-     * @throws ElementNotRegisteredException
-     */
-    public function getElementDefinition(string $type)
-    {
-        $type = $this->resolveType($type);
-
-        return $this->elementDefinitions[$type];
-    }
-
-    /**
      * @return ElementDefinition[]
      */
     public function getElementDefinitions()
     {
         return $this->elementDefinitions;
+    }
+
+    /**
+     * @param ElementDefinition $definition
+     * @return ElementDefinition
+     */
+    protected function assignDefinition(ElementDefinition $definition)
+    {
+        $this->elementDefinitions[$definition->getClass()] = $definition;
+        $this->elementAliases[$definition->getAlias()] = $definition->getClass();
+
+        return $definition;
     }
 }

@@ -2,8 +2,6 @@
 
 namespace Click\Elements;
 
-use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Models\Entity;
 use Click\Elements\Types\RelationType;
 use Illuminate\Support\Collection as BaseCollection;
 
@@ -12,73 +10,41 @@ use Illuminate\Support\Collection as BaseCollection;
  */
 class Collection extends BaseCollection
 {
-    protected $elementType;
-
-    /**
-     * Converts a collection of Entity models into a collection of Elements
-     *
-     * @param BaseCollection $entities
-     * @return static
-     */
-    public static function fromEntities(BaseCollection $entities)
-    {
-        return new static($entities->map(function (Entity $model) {
-            return $model->toElement();
-        })->all());
-    }
-
     /**
      * @param $relations
      * @return Collection
      */
-    public function setRelations($relations)
+    public function setRelations(BaseCollection $relations)
     {
-        $this->each(function (Element $element) use ($relations) {
+        return $this->each(function (Element $element) use ($relations) {
             $attributes = $element->getRawAttributes();
 
             foreach ($relations as $key => $elements) {
-                if ($element->hasRelation($key)) {
-                    $type = $element->getRelationType($key);
+                $keys = $attributes[$key];
 
-                    if ($type === RelationType::SINGLE) {
-                        $relation = $relations[$key]->get($attributes[$key]);
+                $elementDefinition = $element->getElementDefinition()->getAttributeDefinition($key);
+                $relationType = $elementDefinition->getMeta('relationType');
 
-                        if ($relation) {
-                            $element->setRelation($key, $relation);
-                        }
-                    } elseif ($type === RelationType::MANY) {
-                        $relation = $relations[$key]->only($attributes[$key])->all();
+                if ($relationType == RelationType::MANY) {
+                    $relation = $relations->get($key)->only($keys);
+                } else {
+                    $relation = $relations->get($key)->get($keys);
+                }
 
-                        if ($relation) {
-                            $element->setRelation($key, $relation);
-                        }
-                    }
+                if ($relation) {
+                    $element->setRelation($key, $relation);
                 }
             }
         });
-
-        return $this;
     }
 
     /**
-     * @return ElementDefinition
-     * @throws Exceptions\Element\ElementNotRegisteredException
+     * @return Collection
      */
-    public function getElementType()
+    public function getElementDefinitions()
     {
-        return $this->first()->getElementDefinition();
-    }
-
-
-    /**
-     * Get the first item from the collection passing the given truth test.
-     *
-     * @param callable|null $callback
-     * @param mixed $default
-     * @return Element
-     */
-    public function first(callable $callback = null, $default = null)
-    {
-        return parent::first($callback, $default);
+        return $this->map(function (Element $element) {
+            return $element->getElementDefinition();
+        })->unique();
     }
 }

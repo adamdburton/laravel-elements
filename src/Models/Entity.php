@@ -3,53 +3,38 @@
 namespace Click\Elements\Models;
 
 use Click\Elements\Definitions\ElementDefinition;
-use Click\Elements\Element;
-use Click\Elements\Exceptions\Element\ElementNotRegisteredException;
-use Click\Elements\Pivots\EntityProperty;
-use Click\Elements\Scopes\ElementScope;
-use Click\Elements\Types\PropertyType;
-use Click\Elements\Types\RelationType;
-use Illuminate\Contracts\Container\BindingResolutionException;
+use Click\Elements\Pivots\Value;
+use Click\Elements\Types\AttributeType;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Carbon;
 
 /**
  * Model for storing entities
- * @property Collection properties
  * @property int id
  * @property string type
- * @property Carbon created_at
- * @property Carbon updated_at
- * @property Collection relatedElements
+ * @property Collection attributeValues
+ * @property Collection relatedEntities
+ * @property Collection reverseRelatedEntities
  */
 class Entity extends Model
 {
+    public $timestamps = false;
+
     protected $table = 'elements_entities';
 
-    protected $fillable = ['type', 'version'];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        // Force properties() to auto-load which has the pivot
-        // data needed for an entity to mean anything useful.
-
-        static::addGlobalScope(new ElementScope);
-    }
+    protected $fillable = ['type'];
 
     // Relationships
 
     /**
      * @return BelongsToMany
      */
-    public function properties()
+    public function attributeValues() // attributes is taken :<
     {
-        return $this->belongsToMany(Property::class, 'elements_entity_properties')
-            ->using(EntityProperty::class)
+        return $this->belongsToMany(Attribute::class, 'elements_values')
+            ->using(Value::class)
             ->withPivot(
                 'boolean_value',
                 'integer_value',
@@ -69,7 +54,7 @@ class Entity extends Model
     {
         return $this->belongsToMany(
             Entity::class,
-            'elements_entity_properties',
+            'elements_values',
             'entity_id',
             'unsigned_integer_value'
         );
@@ -82,7 +67,7 @@ class Entity extends Model
     {
         return $this->belongsToMany(
             Entity::class,
-            'elements_entity_properties',
+            'elements_values',
             'unsigned_integer_value',
             'entity_id'
         );
@@ -99,72 +84,23 @@ class Entity extends Model
     // Methods
 
     /**
-     * @return Element
-     * @throws ElementNotRegisteredException
-     * @throws BindingResolutionException
+     * @param ElementDefinition $definition
+     * @return Attribute[]
      */
-    public function toElement()
+    public function getEntityAttributeValues(ElementDefinition $definition)
     {
-        $attributes = $this->getPropertyValues();
+        $d = $this->attributeValues
+            ->mapToDictionary(function (Attribute $attribute) {
+                return [$attribute->key => $attribute->getEntityAttributeValue()];
+            })
+            ->mapWithKeys(function ($values, $key) use ($definition) {
+                $attribute = $definition->getAttributeDefinition($key);
 
-        return elements()->make(
-            $this->type,
-            $attributes,
-            $this->getMeta()
-        );
-    }
+                return [$key => $attribute->getType() === AttributeType::RELATION ? $values : $values[0]];
+            })
+            ->all();
 
-    /**
-     * @return Property[]
-     */
-    protected function getPropertyValues()
-    {
-        $values = [];
-
-        $this->properties->each(function (Property $property) use (&$values) {
-            if (isset($values[$property->key]) && !is_array($values[$property->key])) {
-                $values[$property->key] = [$values[$property->key]];
-            }
-
-            if (isset($values[$property->key]) && is_array($values[$property->key])) {
-                $values[$property->key][] = $property->getValue();
-            } else {
-                $values[$property->key] = $property->getValue();
-            }
-        })->all();
-
-        return $this->properties->mapWithKeys(function (Property $property) use ($values) {
-            return [$property->key => $values[$property->key]];
-        })->all();
-    }
-
-    /**
-     * @param string $property
-     * @return bool
-     * @throws BindingResolutionException
-     * @throws ElementNotRegisteredException
-     * @throws PropertyNotRegisteredException
-     */
-    protected function isManyRelationProperty(string $property)
-    {
-        dd('used');
-        $definition = $this->getElementDefinition()->getPropertyDefinition($property);
-
-        if ($definition->getType() !== PropertyType::RELATION) {
-            return false;
-        }
-
-        return $definition->getMeta('relationType') === RelationType::MANY;
-    }
-
-    /**
-     * @return ElementDefinition
-     * @throws BindingResolutionException
-     * @throws ElementNotRegisteredException
-     */
-    protected function getElementDefinition()
-    {
-        return elements()->getElementDefinition($this->type);
+        return $d;
     }
 
     /**
@@ -174,9 +110,7 @@ class Entity extends Model
     {
         return [
             'id' => $this->id,
-            'type' => $this->type,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'type' => $this->type
         ];
     }
 }

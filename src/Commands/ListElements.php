@@ -2,7 +2,7 @@
 
 namespace Click\Elements\Commands;
 
-use Click\Elements\Definitions\PropertyDefinition;
+use Click\Elements\Definitions\AttributeDefinition;
 use Click\Elements\Elements;
 use Illuminate\Console\Command;
 
@@ -41,7 +41,7 @@ class ListElements extends Command
         $headers = [
             'Alias',
             'Class',
-            'Properties',
+            'Attributes',
             'Installed?'
         ];
 
@@ -51,8 +51,8 @@ class ListElements extends Command
             $rows[$definition->getAlias()] = [
                 $definition->getAlias(),
                 $definition->getClass(),
-                collect($definition->getPropertyDefinitions())->map(function (PropertyDefinition $propertyDefinition) {
-                    return sprintf('%s (%s)', $propertyDefinition->getKey(), $propertyDefinition->getType());
+                collect($definition->getAttributeDefinitions())->map(function (AttributeDefinition $attributeDefinition) {
+                    return sprintf('%s (%s)', $attributeDefinition->getKey(), $attributeDefinition->getType());
                 })->join("\n"),
                 $definition->isInstalled() ? 'Yes' : 'No'
             ];
