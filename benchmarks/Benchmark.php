@@ -9,9 +9,8 @@ use Click\Elements\Tests\TestCase;
 
 /**
  * @BeforeMethods({"setUp"})
- * @Revs(10)
- * @Iterations(1)
- * @Warmup(1)
+ * @Revs(100)
+ * @Iterations(5)
  */
 abstract class Benchmark extends TestCase
 {

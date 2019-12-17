@@ -44,6 +44,7 @@ phpbench:
   stage: bench
   dependencies:
     - setup
+    - phpunit
   script:
     - php -v
     - composer bench

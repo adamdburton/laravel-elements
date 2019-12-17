@@ -1,7 +1,6 @@
 {
   "bootstrap": "vendor/autoload.php",
   "path": "benchmarks",
-  "time_unit": "seconds",
   "extensions": [
     "PhpBench\\Extensions\\XDebug\\XDebugExtension"
   ],
@@ -10,5 +9,9 @@
       "extends": "aggregate",
       "break": ["groups", "benchmark"]
     }
+  },
+  "php_disable_ini": true,
+  "php_config": {
+    "sys_temp_dir": "/var/tmp"
   }
 }

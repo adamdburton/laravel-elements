@@ -68,7 +68,7 @@
       "vendor/bin/phpunit --coverage-clover clover.xml --colors=never --stderr"
     ],
     "bench": [
-      "vendor/bin/phpbench run --report=elements"
+      "vendor/bin/phpbench run --report=elements --time-unit=seconds --retry-threshold=5"
     ]
   }
 }
