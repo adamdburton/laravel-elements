@@ -12,6 +12,7 @@ class RelationType extends Type
 {
     public const SINGLE = 'single';
     public const MANY = 'many';
+    public const BELONGS_TO = 'belongs_to';
 
     /**
      * @param string $type

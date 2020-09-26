@@ -31,9 +31,6 @@ use Illuminate\Support\Traits\ForwardsCalls;
  * @method static Builder where($attribute, $operator = '=', $value = null)
  * @see Builder::where()
  *
- * @method static Builder delete()
- * @see Builder::delete()
- *
  * @method static Builder has($attribute, Closure $callback)
  * @see Builder::has()
  *
@@ -45,7 +42,6 @@ use Illuminate\Support\Traits\ForwardsCalls;
  *
  * @method static Builder whereDoesNotHave($attribute, Closure $callback)
  * @see Builder::whereDoesNotHave()
- *
  */
 abstract class Element implements ElementContract
 {
@@ -112,13 +108,13 @@ abstract class Element implements ElementContract
      */
     public function __call($method, $parameters)
     {
-        return $this->forwardCallTo($this->newQuery(), $method, $parameters);
+        return $this->forwardCallTo($this->query(), $method, $parameters);
     }
 
     /**
      * @return Builder
      */
-    public function newQuery()
+    public function query()
     {
         return new Builder($this);
     }
@@ -138,13 +134,13 @@ abstract class Element implements ElementContract
     /**
      * @return array
      */
-    protected function getAttributeValues()
+    protected function getAttributes()
     {
         $definitions = collect($this->getElementDefinition()->getAttributeDefinitions());
 
-        return $definitions->map(function (AttributeDefinition $definition) {
+        return $definitions->values()->map(function (AttributeDefinition $definition) {
             return $definition->toJson();
-        })->all();
+        })->keyBy('key')->all();
     }
 
     /**
@@ -254,7 +250,7 @@ abstract class Element implements ElementContract
      */
     public function buildMetaDefinition(ElementSchema $schema)
     {
-        $schema->timestamp('createdAt');
-        $schema->timestamp('updatedAt');
+        $schema->timestamp('createdAt')->label('Created');
+        $schema->timestamp('updatedAt')->label('Updated');
     }
 }

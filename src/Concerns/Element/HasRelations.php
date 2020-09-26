@@ -2,6 +2,7 @@
 
 namespace Click\Elements\Concerns\Element;
 
+use Click\Elements\Builder;
 use Click\Elements\Definitions\AttributeDefinition;
 use Click\Elements\Definitions\ElementDefinition;
 use Click\Elements\Element;
@@ -18,6 +19,7 @@ use Illuminate\Support\Collection;
  * Trait HasRelations
  * @method ElementDefinition getElementDefinition()
  * @method AttributeDefinition getAttributeDefinition($key)
+ * @method Builder query()
  */
 trait HasRelations
 {
@@ -25,6 +27,26 @@ trait HasRelations
      * @var array
      */
     protected $relations = [];
+
+    /**
+     * @param string|null $relation
+     * @return mixed
+     * @throws ElementNotRegisteredException
+     */
+    protected function relation(string $relation = null)
+    {
+        $relation = $relation ?? $this->findRelationName();
+
+        return $this->query()->getRelationBuilder($relation);
+    }
+
+    /**
+     * @return string
+     */
+    protected function findRelationName()
+    {
+        return debug_backtrace()[2]['function'];
+    }
 
     /**
      * @param string $relation
@@ -236,6 +258,8 @@ trait HasRelations
             return $this->getSingleRelation($relation);
         } elseif ($relationType === RelationType::MANY) {
             return $this->getManyRelations($relation);
+        } elseif ($relationType === RelationType::BELONGS_TO) {
+            return $this->getManyBelongsToRelations($relation);
         }
 
         throw new RelationNotDefinedException($relation, $this->getElementDefinition());
@@ -272,6 +296,11 @@ trait HasRelations
         $ids = $this->attributes[$relation];
 
         return element($elementType)->findMany($ids);
+    }
+
+    protected function getManyBelongsToRelations(string $relation)
+    {
+
     }
 
     /**

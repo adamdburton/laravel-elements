@@ -3,28 +3,24 @@
 namespace DummyNamespace;
 
 use Click\Elements\Element;
-use Click\Elements\Exceptions\PropertyKeyInvalidException;
+use Click\Elements\Exceptions\Attribute\AttributeAlreadyDefinedException;
+use Click\Elements\Exceptions\Attribute\AttributeKeyInvalidException;
+use Click\Elements\Exceptions\AttributeSchema\AttributeSchemaClassInvalidException;
+use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Schemas\ElementSchema;
 
 class DummyClass extends Element
 {
     /**
-     * Define the schema for the DummyClass element.
-     *
      * @param ElementSchema $schema
      * @return void
-     * @throws PropertyKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @see ElementSchema
      */
-    public function getDefinition(ElementSchema $schema)
+    public function buildDefinition(ElementSchema $schema)
     {
-        //$schema->string('title');
-        //$schema->boolean('inStock');
-        //$schema->integer('quantity');
-        //$schema->double('price');
-        //$schema->text('description');
-        //$schema->array('tags');
-        //$schema->json('settings');
-        //$schema->relation('author');
-        //$schema->timestamp('shippedAt');
+
     }
 }

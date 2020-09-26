@@ -405,8 +405,8 @@ class ElementTest extends TestCase
         $this->assertIsArray($json['attributes']);
         $this->assertIsArray($json['values']);
 
-        $this->assertSame($string, $json['attributes']['string']);
-        $this->assertSame('string', $json['values']['string']['type']);
+        $this->assertSame($string, $json['values']['string']);
+        $this->assertSame('string', $json['attributes']['string']['type']);
     }
 
     public function test_all()

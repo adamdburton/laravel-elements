@@ -219,7 +219,7 @@ class ElementSchema extends Schema
     }
 
     /**
-     * @param $key
+     * @param string $key
      * @param string $elementAlias
      * @param string $relationType
      * @return AttributeSchema
@@ -228,7 +228,7 @@ class ElementSchema extends Schema
      * @throws RelationTypeNotValidException
      * @throws AttributeSchemaClassInvalidException
      */
-    public function relation($key, string $elementAlias, string $relationType)
+    public function relation(string $key, string $elementAlias, string $relationType)
     {
         RelationType::validateValue($relationType);
 
@@ -238,13 +238,30 @@ class ElementSchema extends Schema
     }
 
     /**
-     * @param $key
+     * @param string $key
+     * @param string $elementAlias
+     * @param string|null $foreignKey
+     * @return AttributeSchema
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     * @throws RelationTypeNotValidException
+     */
+    public function belongsTo(string $key, string $elementAlias, string $foreignKey = null)
+    {
+        $foreignKey = $foreignKey ?? $this->element->getSingular();
+
+        return $this->relation($key, $elementAlias, RelationType::BELONGS_TO)->reverse();
+    }
+
+    /**
+     * @param string $key
      * @return AttributeSchema
      * @throws AttributeKeyInvalidException
      * @throws AttributeAlreadyDefinedException
      * @throws AttributeSchemaClassInvalidException
      */
-    public function timestamp($key)
+    public function timestamp(string $key)
     {
         return $this->add($key, AttributeType::TIMESTAMP);
     }

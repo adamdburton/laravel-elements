@@ -22,7 +22,7 @@ trait QueriesAttributes
      * @return Builder
      * @throws ElementNotRegisteredException
      */
-    protected function getRelationBuilder(string $relation)
+    public function getRelationBuilder(string $relation)
     {
         $attributeDefinition = $this->getAttributeDefinition($relation);
 
@@ -31,7 +31,7 @@ trait QueriesAttributes
 
         $element = $elementDefinition->factory();
 
-        return $element->newQuery();
+        return $element->query();
     }
 
     /**

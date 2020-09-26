@@ -91,6 +91,17 @@ class Builder
     }
 
     /**
+     * @param Eloquent $builder
+     * @return Builder
+     */
+    public function setBase(Eloquent $builder)
+    {
+        $this->query = $builder;
+
+        return $this;
+    }
+
+    /**
      * @return Eloquent
      */
     protected function getBase()
@@ -268,17 +279,6 @@ class Builder
     }
 
     /**
-     * @param Eloquent $builder
-     * @return Builder
-     */
-    public function setBase(Eloquent $builder)
-    {
-        $this->query = $builder;
-
-        return $this;
-    }
-
-    /**
      * @param array $attributes
      * @return Element
      * @throws AttributeValidationFailedException
@@ -333,29 +333,6 @@ class Builder
     }
 
     /**
-     * Creates an element without type checking and validation
-     *
-     * @param array $attributes
-     * @return Element
-     */
-//    public function createRaw(array $attributes)
-//    {
-//        $attributes = $this->mergeMetaAttributes($attributes);
-//
-//        $this->element->setRawAttributes($attributes);
-//
-//        $this->fireEvent('creating');
-//        $this->fireEvent('saving');
-//
-//        $this->element->setEntity($this->createEntity($attributes));
-//
-//        $this->fireEvent('created');
-//        $this->fireEvent('saved');
-//
-//        return $this->element;
-//    }
-
-    /**
      * @param string $attribute
      * @return Attribute
      * @throws ElementNotRegisteredException
@@ -365,23 +342,4 @@ class Builder
     {
         return $this->getElementDefinition()->getAttributeModel($attribute);
     }
-
-    /**
-     * @param array $attributes
-     * @return Element
-     */
-//    public function updateRaw(array $attributes)
-//    {
-//        $this->fireEvent('updating');
-//        $this->fireEvent('saving');
-//
-//        $entity = $this->updateEntity($attributes);
-//
-//        $this->element->setEntity($entity);
-//
-//        $this->fireEvent('updated');
-//        $this->fireEvent('saved');
-//
-//        return $this->element;
-//    }
 }

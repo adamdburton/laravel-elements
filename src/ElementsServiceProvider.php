@@ -8,7 +8,6 @@ use Click\Elements\Events\ModelSaved;
 use Click\Elements\Listeners\UpdateElement;
 use Click\Elements\Models\Entity;
 use Click\Elements\Observers\EntityObserver;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,7 +26,6 @@ class ElementsServiceProvider extends ServiceProvider
      * Perform post-registration booting of services.
      *
      * @return void
-     * @throws BindingResolutionException
      */
     public function boot()
     {
@@ -84,7 +82,7 @@ class ElementsServiceProvider extends ServiceProvider
     {
 //        $this->mergeConfigFrom(__DIR__ . '/../config/elements.php', 'elements');
 
-        $this->app->singleton(Elements::class, function ($app) {
+        $this->app->singleton(Elements::class, function () {
             return new Elements();
         });
     }

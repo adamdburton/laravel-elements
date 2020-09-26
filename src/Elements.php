@@ -27,6 +27,7 @@ class Elements
      * @throws ElementClassInvalidException
      * @throws Exceptions\Attribute\AttributeAlreadyDefinedException
      * @throws Exceptions\Attribute\AttributeKeyInvalidException
+     * @throws Exceptions\AttributeSchema\AttributeSchemaClassInvalidException
      */
     public function register(string $class)
     {
@@ -57,6 +58,7 @@ class Elements
      * @return ElementDefinition
      * @throws Exceptions\Attribute\AttributeAlreadyDefinedException
      * @throws Exceptions\Attribute\AttributeKeyInvalidException
+     * @throws Exceptions\AttributeSchema\AttributeSchemaClassInvalidException
      */
     protected function getDefinitionForClass(string $class)
     {
@@ -80,7 +82,7 @@ class Elements
      * @return string
      * @throws ElementNotRegisteredException
      */
-    public function resolveType(string $type)
+    protected function resolveType(string $type)
     {
         if (isset($this->elementAliases[$type])) {
             $type = $this->elementAliases[$type];

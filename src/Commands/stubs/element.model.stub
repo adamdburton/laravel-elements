@@ -16,23 +16,17 @@ class DummyClass extends Element
     protected $syncFromModel = true;
 
     /**
-     * Define the schema for the DummyClass element.
-     *
      * @param ElementSchema $schema
      * @return void
-     * @throws PropertyKeyInvalidException
+     * @throws AttributeSchemaClassInvalidException
+     * @throws AttributeAlreadyDefinedException
+     * @throws AttributeKeyInvalidException
+     * @throws RelationTypeNotValidException
+     * @see ElementSchema
      */
-    public function getDefinition(ElementSchema $schema)
+    public function buildDefinition(ElementSchema $schema)
     {
-        //$schema->string('title');
-        //$schema->boolean('inStock');
-        //$schema->integer('quantity');
-        //$schema->double('price');
-        //$schema->text('description');
-        //$schema->array('tags');
-        //$schema->json('settings');
-        //$schema->relation('author');
-        //$schema->timestamp('shippedAt');
+
     }
 
     /**

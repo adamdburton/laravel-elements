@@ -4,10 +4,13 @@ namespace Click\Elements\Concerns\Builder;
 
 use Click\Elements\Events\Element\ElementCreated;
 use Click\Elements\Events\Element\ElementCreating;
+use Click\Elements\Events\Element\ElementDeleted;
+use Click\Elements\Events\Element\ElementDeleting;
 use Click\Elements\Events\Element\ElementSaved;
 use Click\Elements\Events\Element\ElementSaving;
 use Click\Elements\Events\Element\ElementUpdated;
 use Click\Elements\Events\Element\ElementUpdating;
+use Click\Elements\Exceptions\Event\InvalidEventException;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Symfony\Contracts\EventDispatcher\Event;
 
@@ -50,6 +53,12 @@ trait RaisesEvents
                 return new ElementCreating($this->element);
             case 'created':
                 return new ElementCreated($this->element);
+            case 'deleting':
+                return new ElementDeleting($this->element);
+            case 'deleted':
+                return new ElementDeleted($this->element);
         }
+
+//        throw new InvalidEventException($eventName);
     }
 }

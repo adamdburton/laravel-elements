@@ -27,7 +27,6 @@ trait HasTwoWayBinding
      * @param Element $element
      * @return array
      * @throws ElementNotRegisteredException
-     * @throws ElementsNotInstalledException
      */
 //    public static function mapForModel(Element $element)
 //    {

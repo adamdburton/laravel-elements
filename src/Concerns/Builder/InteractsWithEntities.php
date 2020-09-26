@@ -27,17 +27,6 @@ trait InteractsWithEntities
      * @param array $attributes
      * @return Entity
      */
-    protected function createRawEntity(array $attributes = [])
-    {
-        $entity = $this->createEntity();
-
-        return $this->setRawEntityAttributes($entity, $attributes);
-    }
-
-    /**
-     * @param array $attributes
-     * @return Entity
-     */
     protected function createEntity(array $attributes = [])
     {
         /** @var Entity $entity */
@@ -46,20 +35,6 @@ trait InteractsWithEntities
         ]);
 
         $this->setEntityAttributes($entity, $attributes);
-
-        return $entity;
-    }
-
-    /**
-     * @param Entity $entity
-     * @param array $attributeValues
-     * @return Entity
-     */
-    protected function setEntityAttributes(Entity $entity, array $attributeValues = [])
-    {
-        foreach ($attributeValues as $attribute => $value) {
-            $this->setEntityAttribute($entity, $attribute, $value);
-        }
 
         return $entity;
     }
@@ -98,6 +73,20 @@ trait InteractsWithEntities
     }
 
     /**
+     * @param Entity $entity
+     * @param array $attributeValues
+     * @return Entity
+     */
+    protected function setEntityAttributes(Entity $entity, array $attributeValues = [])
+    {
+        foreach ($attributeValues as $attribute => $value) {
+            $this->setEntityAttribute($entity, $attribute, $value);
+        }
+
+        return $entity;
+    }
+
+    /**
      * @param array $attributes
      * @return Entity
      */
@@ -118,5 +107,12 @@ trait InteractsWithEntities
         return Entity::create([
             'type' => $this->element->getAlias()
         ]);
+    }
+
+    public function delete()
+    {
+        if ($this->element->exists()) {
+
+        }
     }
 }

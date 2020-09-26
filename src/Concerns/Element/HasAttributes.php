@@ -278,7 +278,7 @@ trait HasAttributes
     /**
      * @return array
      */
-    public function getAttributes()
+    public function getAttributeValues()
     {
         return collect($this->attributes)->mapWithKeys(function ($value, $key) {
             return [$key => $this->getAttribute($key)];

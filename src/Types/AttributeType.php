@@ -3,7 +3,6 @@
 namespace Click\Elements\Types;
 
 use Click\Elements\Exceptions\Property\DoubleDecimalsNotValidException;
-use Click\Elements\Exceptions\Relation\RelationTypeNotValidException;
 use Click\Elements\Type;
 
 /**
